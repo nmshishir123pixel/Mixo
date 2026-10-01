@@ -481,9 +481,9 @@ def _ensure_inventory_baseline(conn: sqlite3.Connection):
     conn.commit()
 
 
-def sync_excel_to_db(db_path: str = "retail_clothing.db", live_data_dir: str = "live_data", force: bool = False) -> Dict[str, Any]:
+def sync_excel_to_db(db_path: str = "retail_clothing.db", live_data_dir: str = "live_data", force: bool = False, wipe_tables: bool = False) -> Dict[str, Any]:
     """
-    Scans live_data_dir for Excel files (.xlsx, .xls) and syncs new/updated data into SQLite.
+    Scans live_data_dir for Excel and CSV files (.xlsx, .xls, .csv) and syncs new/updated data into SQLite.
     Tracks file modification timestamps to prevent redundant processing.
     Handles locked/busy files gracefully.
     Triggers generate_insights() upon successful data sync.
@@ -499,21 +499,36 @@ def sync_excel_to_db(db_path: str = "retail_clothing.db", live_data_dir: str = "
     conn = get_db_connection(db_path)
     init_sync_schema(conn)
 
+    if wipe_tables:
+        logger.info("[Excel Sync] wipe_tables=True: Resetting existing retail data tables for fresh dataset sync...")
+        try:
+            conn.execute("DELETE FROM shop_sales;")
+            conn.execute("DELETE FROM products;")
+            conn.execute("DELETE FROM inventory;")
+            conn.execute("DELETE FROM sales_events;")
+            conn.execute("DELETE FROM auto_insights;")
+            conn.execute("DELETE FROM suppliers;")
+            conn.commit()
+            meta = {}
+        except Exception as e_wipe:
+            logger.warning(f"Error resetting tables: {e_wipe}")
+
     files_processed = []
     total_rows = 0
     errors = []
 
     excel_files = [
         f for f in os.listdir(live_data_dir)
-        if (f.endswith(".xlsx") or f.endswith(".xls")) and not f.startswith("~$")
+        if (f.lower().endswith(".xlsx") or f.lower().endswith(".xls") or f.lower().endswith(".csv"))
+        and not f.startswith("~$") and not f.startswith(".")
     ]
 
     if not excel_files:
-        logger.info(f"📁 [Excel Sync] No Excel files found in {live_data_dir}")
+        logger.info(f"📁 [Excel Sync] No Excel or CSV files found in {live_data_dir}")
         conn.close()
         return {
             "status": "SKIPPED",
-            "message": f"No Excel files found in {live_data_dir}",
+            "message": f"No Excel or CSV files found in {live_data_dir}",
             "files_processed": [],
             "rows_synced": 0,
             "synced_at": datetime.now().isoformat()
@@ -531,8 +546,22 @@ def sync_excel_to_db(db_path: str = "retail_clothing.db", live_data_dir: str = "
 
             logger.info(f"[Excel Sync] Processing updated file: {file_name}")
 
-            # Read Excel file with pandas/openpyxl
-            excel_data = pd.read_excel(file_path, sheet_name=None)
+            # Read Excel or CSV file
+            excel_data = {}
+            if file_name.lower().endswith(".csv"):
+                try:
+                    df = pd.read_csv(file_path)
+                    excel_data = {"Sheet1": df}
+                except Exception:
+                    try:
+                        df = pd.read_csv(file_path, encoding="latin1")
+                        excel_data = {"Sheet1": df}
+                    except Exception as e_csv:
+                        logger.error(f"Failed to read CSV {file_name}: {e_csv}")
+                        excel_data = {}
+            else:
+                excel_data = pd.read_excel(file_path, sheet_name=None)
+
             file_rows = 0
 
             for sheet_name, df in excel_data.items():
@@ -546,6 +575,8 @@ def sync_excel_to_db(db_path: str = "retail_clothing.db", live_data_dir: str = "
                 r_shop = _upsert_shop_sales(conn, df)
                 if r_shop > 0:
                     file_rows += r_shop
+                    _upsert_products(conn, df)
+                    _upsert_sales(conn, df)
 
                 if "product" in sheet_lower:
                     r = _upsert_products(conn, df)

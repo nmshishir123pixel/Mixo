@@ -400,6 +400,48 @@ class RuleBasedSQLGenerator:
         if limit_match:
             entities["limit"] = int(limit_match.group(1))
 
+        # Dynamically match entities against current active database records
+        try:
+            import sqlite3
+            conn = sqlite3.connect("retail_clothing.db")
+            cursor = conn.cursor()
+            
+            # Match product from active dataset
+            if "product" not in entities:
+                prods = cursor.execute("SELECT DISTINCT product FROM shop_sales WHERE product IS NOT NULL ORDER BY length(product) DESC").fetchall()
+                for (p_val,) in prods:
+                    if p_val and str(p_val).lower() in query_lower:
+                        entities["product"] = str(p_val)
+                        break
+
+            # Match category from active dataset
+            if "category" not in entities:
+                cats = cursor.execute("SELECT DISTINCT category FROM shop_sales WHERE category IS NOT NULL ORDER BY length(category) DESC").fetchall()
+                for (c_val,) in cats:
+                    if c_val and str(c_val).lower() in query_lower:
+                        entities["category"] = str(c_val)
+                        break
+
+            # Match shop from active dataset
+            if "shop_name" not in entities:
+                shops = cursor.execute("SELECT DISTINCT shop_name FROM shop_sales WHERE shop_name IS NOT NULL ORDER BY length(shop_name) DESC").fetchall()
+                for (s_val,) in shops:
+                    if s_val and str(s_val).lower() in query_lower:
+                        entities["shop_name"] = str(s_val)
+                        break
+
+            # Match city from active dataset
+            if "city" not in entities:
+                cities = cursor.execute("SELECT DISTINCT city FROM shop_sales WHERE city IS NOT NULL ORDER BY length(city) DESC").fetchall()
+                for (city_val,) in cities:
+                    if city_val and str(city_val).lower() in query_lower:
+                        entities["city"] = str(city_val)
+                        break
+
+            conn.close()
+        except Exception:
+            pass
+
         return entities
 
     def _apply_filters(self, sql: str, entities: Dict[str, Any], query_lower: str) -> str:

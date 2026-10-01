@@ -1,0 +1,22 @@
+{
+  "_last_touched": 1790705297.7551236,
+  "history": [
+    {
+      "timestamp": "2026-09-29T18:08:17.755101",
+      "missions": [
+        {
+          "name": "Inventory Stock Count Variance",
+          "query": "What SKUs have stock counts less than their reorder points across all locations?",
+          "domain": "operations",
+          "risk_score": 28,
+          "severity": "MEDIUM",
+          "data_count": 9
+        }
+      ],
+      "domain_scores": {
+        "operations": 28
+      },
+      "critical_domains": []
+    }
+  ]
+}

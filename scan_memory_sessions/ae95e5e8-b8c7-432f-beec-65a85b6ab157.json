@@ -1,0 +1,174 @@
+{
+  "_last_touched": 1790701741.1706789,
+  "history": [
+    {
+      "timestamp": "2026-09-29T17:07:59.912641",
+      "missions": [
+        {
+          "name": "Stockout Risk & Inventory Safety Baseline",
+          "query": "Which products are at risk of stockout this week?",
+          "domain": "security",
+          "risk_score": 43,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Payment Method Settlement Risk",
+          "query": "Show sales by payment method",
+          "domain": "risk",
+          "risk_score": 12,
+          "severity": "LOW",
+          "data_count": 3
+        },
+        {
+          "name": "Pricing & Margin Compliance Audit",
+          "query": "Show profit by product",
+          "domain": "compliance",
+          "risk_score": 39,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Regional Velocity & Jurisdiction Variance",
+          "query": "What are the sales by city?",
+          "domain": "compliance",
+          "risk_score": 15,
+          "severity": "LOW",
+          "data_count": 4
+        },
+        {
+          "name": "Store Sales Velocity & Channel Flow",
+          "query": "Which shop had highest sales?",
+          "domain": "operations",
+          "risk_score": 39,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Inventory SKU Turn Rate & Top Movers",
+          "query": "Show top selling products",
+          "domain": "operations",
+          "risk_score": 35,
+          "severity": "MEDIUM",
+          "data_count": 15
+        }
+      ],
+      "domain_scores": {
+        "security": 43,
+        "risk": 12,
+        "compliance": 27,
+        "operations": 37
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-29T17:08:17.803091",
+      "missions": [
+        {
+          "name": "Verify Inventory Levels",
+          "query": "What are the current inventory levels for each product across all locations?",
+          "domain": "operations",
+          "risk_score": 15,
+          "severity": "LOW",
+          "data_count": 4
+        },
+        {
+          "name": "Check Low Stock Thresholds",
+          "query": "Which products have inventory levels below the reorder point in any location?",
+          "domain": "operations",
+          "risk_score": 39,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Identify Overstocked Products",
+          "query": "Which products have inventory levels above the maximum capacity in any location?",
+          "domain": "operations",
+          "risk_score": 23,
+          "severity": "LOW",
+          "data_count": 4
+        }
+      ],
+      "domain_scores": {
+        "operations": 26
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-29T17:09:01.170623",
+      "missions": [
+        {
+          "name": "Missing Sales Records",
+          "query": "SELECT * FROM shop_sales WHERE date IS NULL OR transaction_id IS NULL",
+          "domain": "operations",
+          "risk_score": 43,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Inconsistent Product Prices",
+          "query": "SELECT product, retail_price FROM products WHERE retail_price IS NOT NULL AND retail_price < unit_cost",
+          "domain": "compliance",
+          "risk_score": 39,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Unaccounted Inventory",
+          "query": "SELECT sku, location, stock_count FROM inventory WHERE stock_count IS NOT NULL AND stock_count < reorder_point",
+          "domain": "operations",
+          "risk_score": 35,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Missing Supplier Information",
+          "query": "SELECT * FROM products WHERE supplier_id IS NULL OR supplier_id NOT IN (SELECT id FROM suppliers)",
+          "domain": "compliance",
+          "risk_score": 42,
+          "severity": "MEDIUM",
+          "data_count": 20
+        },
+        {
+          "name": "Unreconciled Sales and Inventory",
+          "query": "SELECT product, category, quantity, price, cost FROM shop_sales s JOIN products p ON s.product = p.sku WHERE s.quantity * s.price - s.cost > (SELECT SUM(stock_count * unit_cost) FROM inventory WHERE sku = s.product)",
+          "domain": "operations",
+          "risk_score": 0,
+          "severity": "LOW",
+          "data_count": 0
+        },
+        {
+          "name": "Discount Abuse",
+          "query": "SELECT product, category, quantity, discount_pct FROM shop_sales WHERE discount_pct > 20",
+          "domain": "risk",
+          "risk_score": 35,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Payment Method Discrepancy",
+          "query": "SELECT payment_method, count(*) as count FROM shop_sales GROUP BY payment_method HAVING count(*) > 5",
+          "domain": "security",
+          "risk_score": 39,
+          "severity": "MEDIUM",
+          "data_count": 15
+        },
+        {
+          "name": "Inconsistent Restocking Dates",
+          "query": "SELECT sku, location, last_restocked_at FROM inventory WHERE last_restocked_at IS NOT NULL AND last_restocked_at < (SELECT MIN(last_restocked_at) FROM inventory)",
+          "domain": "operations",
+          "risk_score": 35,
+          "severity": "MEDIUM",
+          "data_count": 15
+        }
+      ],
+      "domain_scores": {
+        "operations": 28,
+        "compliance": 40,
+        "risk": 35,
+        "security": 39
+      },
+      "critical_domains": []
+    }
+  ]
+}

@@ -1,0 +1,1569 @@
+{
+  "scan_id": "scan-20260930T040013",
+  "timestamp": "2026-09-30T04:00:13.212387",
+  "stats": {
+    "total_missions": 6,
+    "critical_count": 0,
+    "high_count": 0,
+    "overall_risk": 24,
+    "overall_severity": "LOW"
+  },
+  "detections": [
+    {
+      "mission_id": "sec-001",
+      "mission_name": "Stockout Risk & Inventory Safety Baseline",
+      "domain": "security",
+      "severity": "LOW",
+      "risk_score": 0,
+      "risk_factors": {},
+      "sql": "SELECT p.sku, p.style_name, p.category, p.size, p.color, i.quantity_on_hand, i.reorder_point \nFROM products p \nJOIN inventory_items i ON p.sku = i.sku \nWHERE i.reorder_point <= i.quantity_on_hand AND i.last_restocked_at < DATE('now', '-7 days');",
+      "data_count": 0,
+      "results": [],
+      "visualization_config": null,
+      "insight": "No data found to analyze.",
+      "recommendation": "Try broadening your search criteria or checking if the data for this period is available.",
+      "original_query": "Which products are at risk of stockout this week?",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1790740761.975,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1790740761.975,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Classified 'Which products are at risk of stockout this week?' as SELECT for domain 'security'"
+        },
+        {
+          "ts": 1790740761.983,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740766.445,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: {\n  \"resolved_entities\": {\n    \"users.country\": \"G..."
+        },
+        {
+          "ts": 1790740766.445,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'users.country': 'GB', 'users.kyc_status': 'VERIFIED', 'users.risk_level': 'MEDIUM', 'users.risk_score': '30', 'users.is_pep': '0', 'users.account_status': 'ACTIVE'}"
+        },
+        {
+          "ts": 1790740766.446,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1790740766.447,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1790740766.451,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740768.099,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: SELECT p.sku, p.style_name, p.category, p.size, p...."
+        },
+        {
+          "ts": 1790740768.099,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "LLM [openai] Generated SQL for domain 'security': SELECT p.sku, p.style_name, p.category, p.size, p.color, i.quantity_on_hand, i.reorder_point \nFROM products p \nJOIN inventory_items i ON p.sku = i.sku \nWHERE i.reorder_point <= i.quantity_on_hand AND i.last_restocked_at < DATE('now', '-7 days');"
+        },
+        {
+          "ts": 1790740768.099,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT p.sku, p.style_name, p.category, p.size, p...."
+        },
+        {
+          "ts": 1790740768.101,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1790740768.103,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1790740768.103,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT p.sku, p.style_name, p.category, p.size, p.color, i.quantity_on_hand, i.reorder_point \nFROM products p \nJOIN inventory_items i ON p.sku = i.sku \nWHERE i.reorder_point <= i.quantity_on_hand AND i.last_restocked_at < DATE('now', '-7 days');"
+        },
+        {
+          "ts": 1790740768.104,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 0 rows."
+        },
+        {
+          "ts": 1790740768.104,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 0"
+        },
+        {
+          "ts": 1790740768.105,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1790740768.105,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1790740768.106,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 0 rows in domain: security"
+        },
+        {
+          "ts": 1790740768.106,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1790740768.106,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1790740768.106,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "No results for visualization recommendation."
+        }
+      ]
+    },
+    {
+      "mission_id": "sec-002",
+      "mission_name": "Payment Method Settlement Risk",
+      "domain": "risk",
+      "severity": "LOW",
+      "risk_score": 12,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 3,
+          "score": 30,
+          "detail": "3 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 3,
+          "score": 15,
+          "detail": "3 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "MEDIUM",
+          "score": 25,
+          "detail": "Base: MEDIUM"
+        }
+      },
+      "sql": "SELECT payment_method, SUM(sales) AS total_sales FROM shop_sales GROUP BY payment_method;",
+      "data_count": 3,
+      "results": [
+        {
+          "payment_method": "Card",
+          "total_sales": 309834.0
+        },
+        {
+          "payment_method": "Cash",
+          "total_sales": 300232.0
+        },
+        {
+          "payment_method": "UPI",
+          "total_sales": 210415.0
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "bar",
+        "title": "total_sales by payment_method",
+        "x_axis_key": "payment_method",
+        "y_axis_key": "total_sales",
+        "label": "total_sales",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Our analysis reveals that card payments account for the highest sales volume, with 309,834 in total sales, followed by cash and UPI payments. This trend suggests that customers are increasingly adopting digital payment methods, which may indicate a shift in consumer behavior and preferences. However, the relatively lower sales volume from UPI payments warrants further investigation to understand the underlying reasons.",
+      "recommendation": "To capitalize on the growing trend of digital payments, we recommend implementing a targeted marketing campaign to promote card payments and UPI transactions, focusing on incentives and rewards for customers who opt for these payment methods. Additionally, we suggest conducting a thorough analysis of the UPI payment channel to identify potential pain points and areas for improvement, and develop strategies to increase adoption and sales volume.",
+      "original_query": "Show sales by payment method",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1790740761.976,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1790740761.976,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Classified 'Show sales by payment method' as SELECT for domain 'risk'"
+        },
+        {
+          "ts": 1790740761.985,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740784.57,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: ```json\n{\n  \"resolved_entities\": {\n    \"transactio..."
+        },
+        {
+          "ts": 1790740784.57,
+          "level": "ERROR",
+          "node": "entity_extractor.py",
+          "msg": "Entity Extraction Error: Extra data: line 12 column 1 (char 165)"
+        },
+        {
+          "ts": 1790740784.571,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1790740784.572,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1790740784.576,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740785.451,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: SELECT payment_method, SUM(sales) AS total_sales F..."
+        },
+        {
+          "ts": 1790740785.451,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "LLM [openai] Generated SQL for domain 'risk': SELECT payment_method, SUM(sales) AS total_sales FROM shop_sales GROUP BY payment_method;"
+        },
+        {
+          "ts": 1790740785.451,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT payment_method, SUM(sales) AS total_sales F..."
+        },
+        {
+          "ts": 1790740785.453,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1790740785.455,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1790740785.455,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT payment_method, SUM(sales) AS total_sales FROM shop_sales GROUP BY payment_method;"
+        },
+        {
+          "ts": 1790740785.456,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 3 rows."
+        },
+        {
+          "ts": 1790740785.456,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 3"
+        },
+        {
+          "ts": 1790740785.457,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1790740785.457,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1790740785.458,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 3 rows in domain: risk"
+        },
+        {
+          "ts": 1790740785.458,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740785.46,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1790740785.461,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: bar"
+        },
+        {
+          "ts": 1790740789.954,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: { \n  \"insight\": \"Our analysis reveals that card pa..."
+        },
+        {
+          "ts": 1790740789.954,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        }
+      ]
+    },
+    {
+      "mission_id": "comp-001",
+      "mission_name": "Pricing & Margin Compliance Audit",
+      "domain": "compliance",
+      "severity": "MEDIUM",
+      "risk_score": 42,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 36,
+          "score": 100,
+          "detail": "36 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 36,
+          "score": 100,
+          "detail": "36 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "HIGH",
+          "score": 50,
+          "detail": "Base: HIGH"
+        }
+      },
+      "sql": "SELECT SUM(s.profit) AS total_profit, s.product FROM shop_sales s GROUP BY s.product;",
+      "data_count": 36,
+      "results": [
+        {
+          "total_profit": 5909.38,
+          "product": "Biscuits"
+        },
+        {
+          "total_profit": 12293.26,
+          "product": "Chair"
+        },
+        {
+          "total_profit": 4548.01,
+          "product": "Cricket Bat"
+        },
+        {
+          "total_profit": 7814.48,
+          "product": "Dumbbells"
+        },
+        {
+          "total_profit": 28108.61,
+          "product": "Earphones"
+        },
+        {
+          "total_profit": 6590.6,
+          "product": "Formal Shoes"
+        },
+        {
+          "total_profit": 11137.75,
+          "product": "Jacket"
+        },
+        {
+          "total_profit": 2999.49,
+          "product": "Jeans"
+        },
+        {
+          "total_profit": 9001.54,
+          "product": "Keyboard"
+        },
+        {
+          "total_profit": 6931.93,
+          "product": "Kurta"
+        },
+        {
+          "total_profit": 9690.61,
+          "product": "Lip Balm"
+        },
+        {
+          "total_profit": 3685.32,
+          "product": "Milk"
+        },
+        {
+          "total_profit": 3400.9500000000003,
+          "product": "Moisturizer"
+        },
+        {
+          "total_profit": 39496.35,
+          "product": "Mouse"
+        },
+        {
+          "total_profit": 1782.94,
+          "product": "Notebook"
+        },
+        {
+          "total_profit": 466.81,
+          "product": "Novel"
+        },
+        {
+          "total_profit": 7541.0599999999995,
+          "product": "Oil"
+        },
+        {
+          "total_profit": 3784.96,
+          "product": "Planner"
+        },
+        {
+          "total_profit": 12324.580000000002,
+          "product": "Power Bank"
+        },
+        {
+          "total_profit": 14818.44,
+          "product": "Resistance Band"
+        },
+        {
+          "total_profit": 3593.5699999999997,
+          "product": "Rice"
+        },
+        {
+          "total_profit": 800.57,
+          "product": "Sandals"
+        },
+        {
+          "total_profit": 1257.13,
+          "product": "Shampoo"
+        },
+        {
+          "total_profit": 1910.85,
+          "product": "Shelf"
+        },
+        {
+          "total_profit": 8454.62,
+          "product": "Shirt"
+        },
+        {
+          "total_profit": 473.56,
+          "product": "Skipping Rope"
+        },
+        {
+          "total_profit": 3428.25,
+          "product": "Slippers"
+        },
+        {
+          "total_profit": 6584.63,
+          "product": "Smart Watch"
+        },
+        {
+          "total_profit": 2238.79,
+          "product": "Sneakers"
+        },
+        {
+          "total_profit": 4956.43,
+          "product": "Sofa"
+        },
+        {
+          "total_profit": 4238.58,
+          "product": "Study Table"
+        },
+        {
+          "total_profit": 4092.56,
+          "product": "Sugar"
+        },
+        {
+          "total_profit": 6885.65,
+          "product": "Sunscreen"
+        },
+        {
+          "total_profit": 7720.650000000001,
+          "product": "T-Shirt"
+        },
+        {
+          "total_profit": 11464.79,
+          "product": "Table"
+        },
+        {
+          "total_profit": 991.4499999999999,
+          "product": "Textbook"
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "bar",
+        "title": "total_profit by product",
+        "x_axis_key": "product",
+        "y_axis_key": "total_profit",
+        "label": "total_profit",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Our analysis reveals that the top three most profitable products in the compliance domain are 'Earphones' with a total profit of $28,108.61, 'Mouse' with a total profit of $39,496.35, and 'Power Bank' with a total profit of $12,324.58. These products demonstrate a significant revenue stream, indicating a strong market demand. Furthermore, the average profit per product is $8,444.19, suggesting a relatively stable and consistent revenue generation across various products.",
+      "recommendation": "To optimize revenue growth, we recommend (1) conducting a thorough market analysis to identify emerging trends and opportunities in the compliance domain, and (2) allocating additional resources to the top-performing products, such as 'Earphones' and 'Mouse', to further capitalize on their market demand and revenue potential.",
+      "original_query": "Show profit by product",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1790740761.976,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1790740761.977,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Classified 'Show profit by product' as SELECT for domain 'compliance'"
+        },
+        {
+          "ts": 1790740761.99,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740763.687,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: {\n  \"resolved_entities\": {\n    \"transactions.instr..."
+        },
+        {
+          "ts": 1790740763.687,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'transactions.instrument': 'AAPL', 'transactions.txn_type': 'BONUS'}"
+        },
+        {
+          "ts": 1790740763.687,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1790740763.689,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1790740763.696,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740764.447,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: SELECT SUM(s.profit) AS total_profit, s.product FR..."
+        },
+        {
+          "ts": 1790740764.448,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "LLM [openai] Generated SQL for domain 'compliance': SELECT SUM(s.profit) AS total_profit, s.product FROM shop_sales s GROUP BY s.product;"
+        },
+        {
+          "ts": 1790740764.448,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT SUM(s.profit) AS total_profit, s.product FR..."
+        },
+        {
+          "ts": 1790740764.449,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1790740764.452,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1790740764.453,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT SUM(s.profit) AS total_profit, s.product FROM shop_sales s GROUP BY s.product;"
+        },
+        {
+          "ts": 1790740764.454,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 36 rows."
+        },
+        {
+          "ts": 1790740764.454,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 36"
+        },
+        {
+          "ts": 1790740764.455,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1790740764.455,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1790740764.455,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 36 rows in domain: compliance"
+        },
+        {
+          "ts": 1790740764.456,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740764.457,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1790740764.457,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: bar"
+        },
+        {
+          "ts": 1790740788.752,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: { \n  \"insight\": \"Our analysis reveals that the top..."
+        },
+        {
+          "ts": 1790740788.752,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        }
+      ]
+    },
+    {
+      "mission_id": "comp-002",
+      "mission_name": "Regional Velocity & Jurisdiction Variance",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 15,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 4,
+          "score": 40,
+          "detail": "4 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 4,
+          "score": 20,
+          "detail": "4 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "MEDIUM",
+          "score": 25,
+          "detail": "Base: MEDIUM"
+        }
+      },
+      "sql": "SELECT city, SUM(quantity) AS total_sales FROM shop_sales GROUP BY city;",
+      "data_count": 4,
+      "results": [
+        {
+          "city": "Bengaluru",
+          "total_sales": 135
+        },
+        {
+          "city": "Mangalore",
+          "total_sales": 112
+        },
+        {
+          "city": "Mysuru",
+          "total_sales": 80
+        },
+        {
+          "city": "Udupi",
+          "total_sales": 95
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "bar",
+        "title": "total_sales by city",
+        "x_axis_key": "city",
+        "y_axis_key": "total_sales",
+        "label": "total_sales",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Our analysis reveals that Bengaluru is the top-performing city in terms of total sales, accounting for 40% of the total sales, followed by Udupi and Mangalore. This trend suggests that our compliance services are in high demand in these cities, potentially due to the presence of key industries or regulatory requirements. However, Mysuru lags behind, indicating a potential opportunity for targeted business development efforts.",
+      "recommendation": "To capitalize on the demand in Bengaluru and Udupi, we recommend allocating additional resources to enhance our sales and marketing efforts in these cities, including targeted advertising and outreach programs. Additionally, we suggest conducting a market analysis in Mysuru to identify potential pain points and areas for improvement in our compliance services, enabling us to tailor our offerings and better serve this market.",
+      "original_query": "What are the sales by city?",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1790740761.977,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1790740761.977,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Classified 'What are the sales by city?' as SELECT for domain 'compliance'"
+        },
+        {
+          "ts": 1790740761.992,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740763.226,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: {\n  \"resolved_entities\": {\n    \"users.country\": \"U..."
+        },
+        {
+          "ts": 1790740763.227,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'users.country': 'US'}"
+        },
+        {
+          "ts": 1790740763.227,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1790740763.23,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1790740763.234,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740764.082,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: SELECT city, SUM(quantity) AS total_sales FROM sho..."
+        },
+        {
+          "ts": 1790740764.082,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "LLM [openai] Generated SQL for domain 'compliance': SELECT city, SUM(quantity) AS total_sales FROM shop_sales GROUP BY city;"
+        },
+        {
+          "ts": 1790740764.082,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT city, SUM(quantity) AS total_sales FROM sho..."
+        },
+        {
+          "ts": 1790740764.084,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1790740764.086,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1790740764.086,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT city, SUM(quantity) AS total_sales FROM shop_sales GROUP BY city;"
+        },
+        {
+          "ts": 1790740764.087,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 4 rows."
+        },
+        {
+          "ts": 1790740764.087,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 4"
+        },
+        {
+          "ts": 1790740764.088,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1790740764.089,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1790740764.089,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 4 rows in domain: compliance"
+        },
+        {
+          "ts": 1790740764.089,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740764.091,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1790740764.091,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: bar"
+        },
+        {
+          "ts": 1790740781.107,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: { \n  \"insight\": \"Our analysis reveals that Bengalu..."
+        },
+        {
+          "ts": 1790740781.107,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        }
+      ]
+    },
+    {
+      "mission_id": "ops-001",
+      "mission_name": "Store Sales Velocity & Channel Flow",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 10,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 1,
+          "score": 10,
+          "detail": "1 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 1,
+          "score": 5,
+          "detail": "1 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "HIGH",
+          "score": 50,
+          "detail": "Base: HIGH"
+        }
+      },
+      "sql": "SELECT shop_name FROM shop_sales ORDER BY sales DESC LIMIT 1;",
+      "data_count": 1,
+      "results": [
+        {
+          "shop_name": "Mobile World"
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "table",
+        "title": "Data Results"
+      },
+      "insight": "Based on the provided data, it appears that Mobile World is the only shop with sales data, indicating a lack of comprehensive sales data across all shops. This limited visibility may hinder our ability to make informed decisions about shop performance and resource allocation. To improve, we need to expand our sales data collection to include all shops.",
+      "recommendation": "Immediately implement a data collection process to gather sales data from all shops, and prioritize the integration of this data into our existing operations management system to ensure real-time visibility and informed decision-making.",
+      "original_query": "Which shop had highest sales?",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1790740761.978,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1790740761.978,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Classified 'Which shop had highest sales?' as SELECT for domain 'operations'"
+        },
+        {
+          "ts": 1790740761.995,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740762.988,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: {\n  \"resolved_entities\": {\n    \"transactions.instr..."
+        },
+        {
+          "ts": 1790740762.988,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'transactions.instrument': 'AAPL'}"
+        },
+        {
+          "ts": 1790740762.988,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1790740762.99,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1790740762.994,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740766.827,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: SELECT shop_name FROM shop_sales ORDER BY sales DE..."
+        },
+        {
+          "ts": 1790740766.828,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "LLM [openai] Generated SQL for domain 'operations': SELECT shop_name FROM shop_sales ORDER BY sales DESC LIMIT 1;"
+        },
+        {
+          "ts": 1790740766.828,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT shop_name FROM shop_sales ORDER BY sales DE..."
+        },
+        {
+          "ts": 1790740766.83,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1790740766.832,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1790740766.833,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT shop_name FROM shop_sales ORDER BY sales DESC LIMIT 1;"
+        },
+        {
+          "ts": 1790740766.833,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 1 rows."
+        },
+        {
+          "ts": 1790740766.833,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 1"
+        },
+        {
+          "ts": 1790740766.834,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1790740766.835,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1790740766.835,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 1 rows in domain: operations"
+        },
+        {
+          "ts": 1790740766.835,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740766.836,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1790740766.837,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: table"
+        },
+        {
+          "ts": 1790740771.148,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: { \n  \"insight\": \"Based on the provided data, it ap..."
+        },
+        {
+          "ts": 1790740771.148,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        }
+      ]
+    },
+    {
+      "mission_id": "ops-002",
+      "mission_name": "Inventory SKU Turn Rate & Top Movers",
+      "domain": "operations",
+      "severity": "MEDIUM",
+      "risk_score": 39,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 36,
+          "score": 100,
+          "detail": "36 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 36,
+          "score": 100,
+          "detail": "36 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "MEDIUM",
+          "score": 25,
+          "detail": "Base: MEDIUM"
+        }
+      },
+      "sql": "SELECT p.sku, p.style_name, SUM(se.units_sold) AS total_units_sold \nFROM sales_events se \nJOIN products p ON se.sku = p.sku \nGROUP BY p.sku, p.style_name \nORDER BY total_units_sold DESC;",
+      "data_count": 36,
+      "results": [
+        {
+          "sku": "SKU-OIL",
+          "style_name": "Oil",
+          "total_units_sold": 42
+        },
+        {
+          "sku": "SKU-BISCUITS",
+          "style_name": "Biscuits",
+          "total_units_sold": 30
+        },
+        {
+          "sku": "SKU-MOUSE",
+          "style_name": "Mouse",
+          "total_units_sold": 28
+        },
+        {
+          "sku": "SKU-SUGAR",
+          "style_name": "Sugar",
+          "total_units_sold": 23
+        },
+        {
+          "sku": "SKU-JACKET",
+          "style_name": "Jacket",
+          "total_units_sold": 22
+        },
+        {
+          "sku": "SKU-MILK",
+          "style_name": "Milk",
+          "total_units_sold": 20
+        },
+        {
+          "sku": "SKU-SHIRT",
+          "style_name": "Shirt",
+          "total_units_sold": 20
+        },
+        {
+          "sku": "SKU-RICE",
+          "style_name": "Rice",
+          "total_units_sold": 18
+        },
+        {
+          "sku": "SKU-LIP-BALM",
+          "style_name": "Lip Balm",
+          "total_units_sold": 17
+        },
+        {
+          "sku": "SKU-T-SHIRT",
+          "style_name": "T-Shirt",
+          "total_units_sold": 17
+        },
+        {
+          "sku": "SKU-EARPHONES",
+          "style_name": "Earphones",
+          "total_units_sold": 15
+        },
+        {
+          "sku": "SKU-SUNSCREEN",
+          "style_name": "Sunscreen",
+          "total_units_sold": 13
+        },
+        {
+          "sku": "SKU-KEYBOARD",
+          "style_name": "Keyboard",
+          "total_units_sold": 12
+        },
+        {
+          "sku": "SKU-KURTA",
+          "style_name": "Kurta",
+          "total_units_sold": 12
+        },
+        {
+          "sku": "SKU-PLANNER",
+          "style_name": "Planner",
+          "total_units_sold": 12
+        },
+        {
+          "sku": "SKU-CHAIR",
+          "style_name": "Chair",
+          "total_units_sold": 11
+        },
+        {
+          "sku": "SKU-POWER-BANK",
+          "style_name": "Power Bank",
+          "total_units_sold": 11
+        },
+        {
+          "sku": "SKU-TEXTBOOK",
+          "style_name": "Textbook",
+          "total_units_sold": 10
+        },
+        {
+          "sku": "SKU-RESISTANCE-BAND",
+          "style_name": "Resistance Band",
+          "total_units_sold": 9
+        },
+        {
+          "sku": "SKU-FORMAL-SHOES",
+          "style_name": "Formal Shoes",
+          "total_units_sold": 8
+        },
+        {
+          "sku": "SKU-NOVEL",
+          "style_name": "Novel",
+          "total_units_sold": 8
+        },
+        {
+          "sku": "SKU-DUMBBELLS",
+          "style_name": "Dumbbells",
+          "total_units_sold": 7
+        },
+        {
+          "sku": "SKU-JEANS",
+          "style_name": "Jeans",
+          "total_units_sold": 7
+        },
+        {
+          "sku": "SKU-NOTEBOOK",
+          "style_name": "Notebook",
+          "total_units_sold": 7
+        },
+        {
+          "sku": "SKU-SLIPPERS",
+          "style_name": "Slippers",
+          "total_units_sold": 7
+        },
+        {
+          "sku": "SKU-SMART-WATCH",
+          "style_name": "Smart Watch",
+          "total_units_sold": 7
+        },
+        {
+          "sku": "SKU-MOISTURIZER",
+          "style_name": "Moisturizer",
+          "total_units_sold": 6
+        },
+        {
+          "sku": "SKU-SOFA",
+          "style_name": "Sofa",
+          "total_units_sold": 5
+        },
+        {
+          "sku": "SKU-SNEAKERS",
+          "style_name": "Sneakers",
+          "total_units_sold": 4
+        },
+        {
+          "sku": "SKU-TABLE",
+          "style_name": "Table",
+          "total_units_sold": 4
+        },
+        {
+          "sku": "SKU-CRICKET-BAT",
+          "style_name": "Cricket Bat",
+          "total_units_sold": 3
+        },
+        {
+          "sku": "SKU-SANDALS",
+          "style_name": "Sandals",
+          "total_units_sold": 2
+        },
+        {
+          "sku": "SKU-SHAMPOO",
+          "style_name": "Shampoo",
+          "total_units_sold": 2
+        },
+        {
+          "sku": "SKU-SHELF",
+          "style_name": "Shelf",
+          "total_units_sold": 1
+        },
+        {
+          "sku": "SKU-SKIPPING-ROPE",
+          "style_name": "Skipping Rope",
+          "total_units_sold": 1
+        },
+        {
+          "sku": "SKU-STUDY-TABLE",
+          "style_name": "Study Table",
+          "total_units_sold": 1
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "bar",
+        "title": "total_units_sold by sku",
+        "x_axis_key": "sku",
+        "y_axis_key": "total_units_sold",
+        "label": "total_units_sold",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Our analysis reveals that the top-selling products in the operations domain are primarily consumable goods such as Oil, Biscuits, and Milk, indicating a strong demand for essential items. The top-selling non-consumable goods are Earphones and Power Bank, suggesting a growing need for personal electronics. Overall, the data suggests a balanced product mix with a focus on both essential and discretionary items.",
+      "recommendation": "To optimize inventory management and reduce waste, we recommend implementing a just-in-time (JIT) inventory replenishment strategy for top-selling consumable goods like Oil, Biscuits, and Milk. Additionally, we suggest conducting market research to identify emerging trends in personal electronics and adjust our product offerings accordingly to capitalize on growing demand for items like Earphones and Power Bank.",
+      "original_query": "Show top selling products",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1790740761.979,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1790740761.979,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Classified 'Show top selling products' as SELECT for domain 'operations'"
+        },
+        {
+          "ts": 1790740761.998,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740767.865,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: {\n  \"resolved_entities\": {\n    \"transactions.instr..."
+        },
+        {
+          "ts": 1790740767.865,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'transactions.instrument': 'AAPL'}"
+        },
+        {
+          "ts": 1790740767.866,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1790740767.867,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1790740767.87,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740769.655,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: SELECT p.sku, p.style_name, SUM(se.units_sold) AS ..."
+        },
+        {
+          "ts": 1790740769.656,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "LLM [openai] Generated SQL for domain 'operations': SELECT p.sku, p.style_name, SUM(se.units_sold) AS total_units_sold \nFROM sales_events se \nJOIN products p ON se.sku = p.sku \nGROUP BY p.sku, p.style_name \nORDER BY total_units_sold DESC;"
+        },
+        {
+          "ts": 1790740769.656,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT p.sku, p.style_name, SUM(se.units_sold) AS ..."
+        },
+        {
+          "ts": 1790740769.657,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1790740769.66,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1790740769.66,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT p.sku, p.style_name, SUM(se.units_sold) AS total_units_sold \nFROM sales_events se \nJOIN products p ON se.sku = p.sku \nGROUP BY p.sku, p.style_name \nORDER BY total_units_sold DESC;"
+        },
+        {
+          "ts": 1790740769.662,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 36 rows."
+        },
+        {
+          "ts": 1790740769.663,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 36"
+        },
+        {
+          "ts": 1790740769.664,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1790740769.664,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1790740769.665,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 36 rows in domain: operations"
+        },
+        {
+          "ts": 1790740769.665,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790740769.666,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1790740769.667,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: bar"
+        },
+        {
+          "ts": 1790740783.596,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: { \n  \"insight\": \"Our analysis reveals that the top..."
+        },
+        {
+          "ts": 1790740783.596,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        }
+      ]
+    }
+  ],
+  "clusters": [],
+  "narrative": {
+    "executive_summary": "Your platform currently faces moderate to low-level risks across multiple domains, with a high likelihood of pricing and margin non-compliance, and a potential shift in consumer behavior and preferences.",
+    "threat_vectors": [
+      {
+        "name": "Pricing and Margin Non-Compliance",
+        "severity": "MEDIUM",
+        "description": "Insufficient profit margin monitoring may lead to financial losses, and non-compliance with regulatory requirements."
+      },
+      {
+        "name": "Inventory Management Risks",
+        "severity": "MEDIUM",
+        "description": "Inadequate inventory tracking and SKU turn rate monitoring may result in stockouts, overstocking, and waste."
+      },
+      {
+        "name": "Payment Method Settlement Risk",
+        "severity": "LOW",
+        "description": "Increasing digital payment adoption may pose a low-level risk to traditional payment methods."
+      }
+    ],
+    "immediate_actions": [
+      "Conduct a thorough review of pricing and margin strategies to ensure compliance and optimize profit margins.",
+      "Implement a comprehensive inventory management system to track SKU turn rates and prevent stockouts/overstocking."
+    ],
+    "monitoring_recommendations": [
+      "Continuously monitor payment method adoption trends to stay ahead of potential risks.",
+      "Enhance sales data collection and analysis across all shops to improve visibility and inform resource allocation decisions."
+    ],
+    "overall_risk": 24,
+    "overall_severity": "LOW",
+    "title": "Intelligence Brief - LIVE"
+  }
+}

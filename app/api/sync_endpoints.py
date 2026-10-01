@@ -9,7 +9,10 @@ Supports:
 """
 
 import sqlite3
-from fastapi import APIRouter, HTTPException, Query, Body
+import os
+import shutil
+from pathlib import Path
+from fastapi import APIRouter, HTTPException, Query, Body, UploadFile, File
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from app.services.excel_sync import sync_excel_to_db, get_sync_status, init_sync_schema
@@ -40,8 +43,91 @@ def _extract_str(val: Any, default_val: str) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 1. Local Excel Sync Endpoints
+# 1. Local Excel Sync & Data Import Endpoints
 # ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/upload", response_model=dict)
+async def upload_live_data_files(
+    files: List[UploadFile] = File(...),
+    auto_sync: bool = Query(True, description="Automatically trigger database sync after upload"),
+    replace_existing: bool = Query(True, description="Replace existing dataset files and reset tables with new upload"),
+    db_path: str = Query("retail_clothing.db", description="Target database path"),
+):
+    """
+    Import one or more files (.xlsx, .xls, .csv) or directory uploads into the live_data/ folder.
+    When replace_existing is True, previous files and retail tables are cleared to reflect the new dataset.
+    Optionally triggers an immediate live sync.
+    """
+    live_data_dir = Path("live_data")
+    live_data_dir.mkdir(parents=True, exist_ok=True)
+    
+    if replace_existing:
+        logger.info("[Upload] replace_existing=True: Clearing previous datasets from live_data/ folder...")
+        for old_f in live_data_dir.iterdir():
+            if old_f.is_file() and (old_f.suffix.lower() in (".xlsx", ".xls", ".csv") or old_f.name == ".sync_metadata.json"):
+                try:
+                    old_f.unlink()
+                except Exception as e_del:
+                    logger.warning(f"Could not remove old file {old_f.name}: {e_del}")
+
+    saved_files = []
+    allowed_extensions = {".xlsx", ".xls", ".csv", ".xml"}
+    
+    for file in files:
+        # Extract filename (handle possible relative path from directory upload)
+        original_name = file.filename or "uploaded_dataset.xlsx"
+        filename = Path(original_name).name
+        ext = Path(filename).suffix.lower()
+        
+        if ext not in allowed_extensions:
+            logger.warning(f"Skipping unsupported file extension: {filename}")
+            continue
+            
+        target_path = live_data_dir / filename
+        with open(target_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        file_size = target_path.stat().st_size
+        saved_files.append({
+            "filename": filename,
+            "size_bytes": file_size,
+            "path": str(target_path)
+        })
+        logger.info(f"Successfully saved imported file: {filename} ({file_size} bytes)")
+        
+    if not saved_files:
+        raise HTTPException(
+            status_code=400,
+            detail="No valid files (.xlsx, .xls, .csv) were provided for import."
+        )
+        
+    sync_result = None
+    if auto_sync:
+        clean_db = _extract_str(db_path, "retail_clothing.db")
+        try:
+            sync_result = sync_excel_to_db(
+                db_path=clean_db,
+                live_data_dir=str(live_data_dir),
+                force=True,
+                wipe_tables=replace_existing
+            )
+            from app.services.auto_insights import generate_insights
+            insights = generate_insights(clean_db)
+            if isinstance(sync_result, dict):
+                sync_result["insights_generated"] = len(insights)
+        except Exception as exc:
+            logger.error(f"Auto-sync after upload failed: {exc}")
+            sync_result = {"status": "error", "error": str(exc)}
+            
+    return {
+        "status": "success",
+        "imported_count": len(saved_files),
+        "files": saved_files,
+        "auto_sync_triggered": auto_sync,
+        "sync_result": sync_result,
+        "message": f"Successfully imported {len(saved_files)} file(s) into live_data/ and updated database."
+    }
+
 
 @router.post("/now", response_model=dict)
 async def trigger_manual_sync(

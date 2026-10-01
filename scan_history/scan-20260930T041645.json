@@ -1,0 +1,262 @@
+{
+  "scan_id": "scan-20260930T041645",
+  "timestamp": "2026-09-30T04:16:45.413265",
+  "stats": {
+    "total_missions": 1,
+    "critical_count": 0,
+    "high_count": 0,
+    "overall_risk": 37,
+    "overall_severity": "LOW"
+  },
+  "detections": [
+    {
+      "mission_id": "Q1-INV-001",
+      "mission_name": "Inventory Reorder Point Alert",
+      "domain": "operations",
+      "severity": "MEDIUM",
+      "risk_score": 37,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 9,
+          "score": 90,
+          "detail": "9 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 9,
+          "score": 45,
+          "detail": "9 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "CRITICAL",
+          "score": 80,
+          "detail": "Base: CRITICAL"
+        }
+      },
+      "sql": "SELECT sku FROM inventory WHERE stock_count < reorder_point;",
+      "data_count": 9,
+      "results": [
+        {
+          "sku": "SKU-BISCUITS"
+        },
+        {
+          "sku": "SKU-EARPHONES"
+        },
+        {
+          "sku": "SKU-KEYBOARD"
+        },
+        {
+          "sku": "SKU-MOISTURIZER"
+        },
+        {
+          "sku": "SKU-OIL"
+        },
+        {
+          "sku": "SKU-RICE"
+        },
+        {
+          "sku": "SKU-SHIRT"
+        },
+        {
+          "sku": "SKU-SNEAKERS"
+        },
+        {
+          "sku": "SKU-SUNSCREEN"
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "table",
+        "title": "Data Results"
+      },
+      "insight": "Based on the provided inventory data, it appears that there are no products with a stock count less than the reorder point. This suggests that the current inventory levels are sufficient to meet demand, and there is no immediate need to replenish stock. However, this analysis is limited to the provided data and does not account for potential future demand or supply chain disruptions.",
+      "recommendation": "To ensure optimal inventory management, we recommend implementing a regular inventory review process to monitor stock levels and adjust reorder points as needed. Additionally, consider integrating a demand forecasting tool to better predict future demand and make more informed inventory decisions.",
+      "original_query": "Are there any products with stock count less than reorder point in the inventory table?",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1790741410.639,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1790741410.639,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Classified 'Are there any products with stock count less than reorder point in the inventory table?' as SELECT for domain 'operations'"
+        },
+        {
+          "ts": 1790741410.641,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790741442.697,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: {\n  \"resolved_entities\": {\n    \"transactions.instr..."
+        },
+        {
+          "ts": 1790741442.697,
+          "level": "INFO",
+          "node": "entity_extractor.py",
+          "msg": "Final Extracted/Resolved Entities: {'transactions.instrument': 'AAPL'}"
+        },
+        {
+          "ts": 1790741442.698,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.95) | Needs Clarification: False"
+        },
+        {
+          "ts": 1790741442.699,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1790741442.703,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790741473.725,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: SELECT sku FROM inventory WHERE stock_count < reor..."
+        },
+        {
+          "ts": 1790741473.725,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "LLM [openai] Generated SQL for domain 'operations': SELECT sku FROM inventory WHERE stock_count < reorder_point;"
+        },
+        {
+          "ts": 1790741473.725,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT sku FROM inventory WHERE stock_count < reor..."
+        },
+        {
+          "ts": 1790741473.727,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1790741473.729,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1790741473.729,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT sku FROM inventory WHERE stock_count < reorder_point;"
+        },
+        {
+          "ts": 1790741473.73,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 9 rows."
+        },
+        {
+          "ts": 1790741473.73,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 9"
+        },
+        {
+          "ts": 1790741473.731,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1790741473.731,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1790741473.732,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 9 rows in domain: operations"
+        },
+        {
+          "ts": 1790741473.732,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM [openai] using model [meta/llama-3.2-11b-vision-instruct] generating response..."
+        },
+        {
+          "ts": 1790741473.733,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1790741473.733,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: table"
+        },
+        {
+          "ts": 1790741489.533,
+          "level": "INFO",
+          "node": "llm.py",
+          "msg": "LLM response received from [meta/llama-3.2-11b-vision-instruct]. Snippet: { \n  \"insight\": \"Based on the provided inventory d..."
+        },
+        {
+          "ts": 1790741489.533,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        }
+      ]
+    }
+  ],
+  "clusters": [],
+  "narrative": {
+    "executive_summary": "Your platform currently faces a medium-risk operational disruption due to potential inventory management inefficiencies.",
+    "threat_vectors": [
+      {
+        "name": "Inventory Reorder Point Alert",
+        "severity": "MEDIUM",
+        "description": "Insufficient inventory data analysis may lead to delayed restocking, impacting operational efficiency."
+      }
+    ],
+    "immediate_actions": [
+      "Verify inventory levels and reorder points to ensure accuracy",
+      "Review and update inventory management processes to prevent future discrepancies"
+    ],
+    "monitoring_recommendations": [
+      "Continuously monitor inventory data to identify potential issues before they become critical",
+      "Implement automated inventory management tools to improve data accuracy and reduce manual errors"
+    ],
+    "overall_risk": 37,
+    "overall_severity": "MEDIUM",
+    "title": "Intelligence Brief - LIVE"
+  }
+}

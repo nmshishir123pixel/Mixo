@@ -17,8 +17,21 @@ except ImportError:
 
 class LLMService:
     def __init__(self):
-        # Priority: Qubrid > OpenAI > Gemini
-        if getattr(settings, "QUBRID_API_KEY", None):
+        # Priority: NVIDIA NIM / OpenAI > Qubrid > Gemini
+        api_key = getattr(settings, "NVIDIA_API_KEY", None) or getattr(settings, "OPENAI_API_KEY", None)
+        if api_key:
+            if openai is None:
+                raise ImportError("openai package is required for NVIDIA / OpenAI API usage.")
+            base_url = getattr(settings, "OPENAI_BASE_URL", "https://integrate.api.nvidia.com/v1")
+            self.client = openai.AsyncOpenAI(
+                api_key=api_key,
+                base_url=base_url,
+                timeout=30.0
+            )
+            self.provider = "openai"
+            self.model_name = getattr(settings, "MODEL_NAME", getattr(settings, "OPENAI_MODEL_NAME", "meta/llama-3.2-11b-vision-instruct"))
+            logger.info(f"LLM Service initialized with provider: {self.provider} (endpoint: {base_url}), model: {self.model_name}")
+        elif getattr(settings, "QUBRID_API_KEY", None):
             if openai is None:
                 raise ImportError("openai package is required for Qubrid API usage.")
             self.client = openai.AsyncOpenAI(
@@ -29,17 +42,6 @@ class LLMService:
             self.provider = "qubrid"
             self.model_name = getattr(settings, "QUBRID_MODEL_NAME", "meta-llama/Llama-3.3-70B-Instruct")
             logger.info(f"LLM Service initialized with Qubrid provider, model: {self.model_name}")
-        elif getattr(settings, "OPENAI_API_KEY", None):
-            if openai is None:
-                raise ImportError("openai package is required for OPENAI_API_KEY usage.")
-            self.client = openai.AsyncOpenAI(
-                api_key=settings.OPENAI_API_KEY,
-                base_url=settings.OPENAI_BASE_URL,
-                timeout=15.0
-            )
-            self.provider = "openai"
-            self.model_name = getattr(settings, "OPENAI_MODEL_NAME", "meta/llama-3.1-8b-instruct")
-            logger.info(f"LLM Service initialized with OpenAI provider, model: {self.model_name}")
         elif getattr(settings, "GEMINI_API_KEY", None):
             if genai is None:
                 raise ImportError("google-generativeai package is required for GEMINI_API_KEY usage.")
@@ -58,10 +60,10 @@ class LLMService:
             )
             logger.info(f"LLM Service initialized with Gemini provider, model: {self.model_name}")
         else:
-            print("Warning: No LLM API key found in settings.")
+            logger.warning("No external LLM API key configured in settings. System will use local custom models.")
             self.provider = None
             self.model = None
-            self.model_name = getattr(settings, "GEMINI_MODEL_NAME", "gemini-2.5-flash-lite")
+            self.model_name = "local_custom_models"
 
     async def _call_openai_compatible(self, prompt: str, model_override: str = None) -> str:
         """Call OpenAI-compatible ChatCompletion (works for OpenAI, Ollama, Qubrid, etc.)."""
@@ -129,12 +131,13 @@ llm_service = LLMService()
 
 
 def get_langchain_llm(temperature: float = 0.7, model_name: str = None):
-    selected_model = model_name or getattr(settings, "OPENAI_MODEL_NAME", "meta/llama-3.1-8b-instruct")
-    if getattr(settings, "OPENAI_API_KEY", None):
+    selected_model = model_name or getattr(settings, "MODEL_NAME", getattr(settings, "OPENAI_MODEL_NAME", "meta/llama-3.2-11b-vision-instruct"))
+    api_key = getattr(settings, "NVIDIA_API_KEY", None) or getattr(settings, "OPENAI_API_KEY", None)
+    if api_key:
         from langchain_openai import ChatOpenAI
         kwargs = {
             "model": selected_model,
-            "api_key": settings.OPENAI_API_KEY,
+            "api_key": api_key,
             "temperature": temperature,
         }
         if settings.OPENAI_BASE_URL:

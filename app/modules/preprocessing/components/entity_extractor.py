@@ -151,16 +151,21 @@ Return ONLY the JSON.
         try:
             from app.core.config import settings
             response = await llm_service.generate_response(prompt, model_name=settings.EXTRACTION_MODEL)
-            # Cleanup
+            # Robust JSON extraction
             response = response.strip()
-            if response.startswith("```json"):
-                response = response.replace("```json", "").replace("```", "").strip()
-            elif response.startswith("```"):
-                response = response.replace("```", "").strip()
+            if "```json" in response:
+                response = response.split("```json")[1].split("```")[0].strip()
+            elif "```" in response:
+                response = response.split("```")[1].split("```")[0].strip()
             
-            # SAFE PARSING: If not JSON, return empty
+            # Find outermost { ... }
+            start = response.find("{")
+            end = response.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                response = response[start:end+1].strip()
+            
             if not (response.startswith("{") and response.endswith("}")):
-                logger.warning(f"EntityExtractor: LLM returned non-JSON response: {response[:100]}")
+                logger.warning(f"EntityExtractor: Could not locate JSON object in response: {response[:100]}")
                 return {"resolved_entities": {}, "metadata": {}}
 
             data = json.loads(response)

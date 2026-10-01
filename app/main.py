@@ -96,6 +96,7 @@ app.include_router(supply_chain_router)  # Supply Chain & Inventory
 app.include_router(carbon_router)        # Carbon Accounting (Scope 1-3)
 app.include_router(stockout_router)      # Stockout analysis endpoints
 app.include_router(sync_router, prefix=settings.API_V1_STR)          # Live Data Sync (Excel + Tally)
+app.include_router(sync_router)                                      # Direct Sync API (/sync)
 app.include_router(procurement_router, prefix=settings.API_V1_STR)     # Autonomous Procurement Agent
 app.include_router(chat_router, prefix=settings.API_V1_STR)            # Chat with Your Data (NL2SQL)
 app.include_router(forecast_router, prefix=settings.API_V1_STR)        # CNN-LSTM Demand Forecasting
@@ -130,14 +131,16 @@ def health_check():
     status_code = 200 if overall == "healthy" else 503
     return JSONResponse(content={"status": overall, "probes": probes}, status_code=status_code)
 
-# Serve frontend static files — prioritize vanilla frontend (cyber theme)
+# Serve frontend static files — single unified endpoint on Port 8080
 frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+    app.mount("/frontend", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
     @app.get("/")
+    @app.get("/index.html")
     def serve_frontend():
-        """Serve the vanilla frontend HTML"""
+        """Serve the single unified frontend HTML"""
         return FileResponse(os.path.join(frontend_path, "index.html"))
 
     @app.get("/styles.css")
@@ -150,4 +153,4 @@ if os.path.exists(frontend_path):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="127.0.0.1", port=8080)

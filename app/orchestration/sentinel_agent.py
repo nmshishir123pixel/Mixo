@@ -1,90 +1,117 @@
-from langchain_core.prompts import ChatPromptTemplate
-from app.core.config import settings
-from app.services.llm import get_langchain_llm
-from app.orchestration.scan_memory import scan_memory
+import asyncio
 import json
+import logging
+from app.core.config import settings
+from app.orchestration.scan_memory import scan_memory
+
+logger = logging.getLogger(__name__)
 
 class SentinelBrainstormer:
     def __init__(self):
-        self.llm = get_langchain_llm(temperature=0.8)
+        try:
+            from app.services.llm import get_langchain_llm
+            self.llm = get_langchain_llm(temperature=0.8)
+        except Exception:
+            self.llm = None
 
         self.schema_context = """
         ACTUAL TABLES (Retail Clothing Domain):
+        - shop_sales (transaction_id, date, customer_id, shop_name, product, category, quantity, price, discount_pct, cost, profit, payment_method, city)
         - products (sku, style_name, category, size, color, unit_cost, retail_price, supplier_id, created_at)
         - inventory (sku, location, stock_count, reorder_point, last_restocked_at)
-        - suppliers (supplier_id, supplier_name, lead_time_days, on_time_rate, country)
-        - sales_events (event_id, sku, units_sold, sale_date, channel)
-        
-        JOIN KEY: products.sku = inventory.sku = sales_events.sku
-        SUPPLIER JOIN: products.supplier_id = suppliers.supplier_id
-        SKU format: CL-00001 to CL-00120
         """
 
+    def _get_offline_missions(self) -> list:
+        """High-impact offline surveillance missions grounded in live retail dataset."""
+        return [
+            {
+                "id": "sec-001",
+                "name": "Stockout Risk & Inventory Safety Baseline",
+                "query": "Which products are at risk of stockout this week?",
+                "domain": "security",
+                "severity": "CRITICAL"
+            },
+            {
+                "id": "sec-002",
+                "name": "Payment Method Settlement Risk",
+                "query": "Show sales by payment method",
+                "domain": "risk",
+                "severity": "MEDIUM"
+            },
+            {
+                "id": "comp-001",
+                "name": "Pricing & Margin Compliance Audit",
+                "query": "Show profit by product",
+                "domain": "compliance",
+                "severity": "HIGH"
+            },
+            {
+                "id": "comp-002",
+                "name": "Regional Velocity & Jurisdiction Variance",
+                "query": "What are the sales by city?",
+                "domain": "compliance",
+                "severity": "MEDIUM"
+            },
+            {
+                "id": "ops-001",
+                "name": "Store Sales Velocity & Channel Flow",
+                "query": "Which shop had highest sales?",
+                "domain": "operations",
+                "severity": "HIGH"
+            },
+            {
+                "id": "ops-002",
+                "name": "Inventory SKU Turn Rate & Top Movers",
+                "query": "Show top selling products",
+                "domain": "operations",
+                "severity": "MEDIUM"
+            }
+        ]
+
     async def brainstorm_missions(self, count_per_domain=2):
-        # Get adaptive context from scan memory
-        adaptive = scan_memory.get_adaptive_context()
-
-        if settings.ADAPTIVE_ENABLED and adaptive["scan_count"] > 0:
-            domain_weights = adaptive["domain_weights"]
-        else:
-            domain_weights = {"retail_clothing": count_per_domain * 4}
-
-        total_count = sum(domain_weights.values())
-
-        prompt = ChatPromptTemplate.from_template("""
-            You are the "Sentinel Brain", an autonomous security and compliance agent for a financial platform.
-            Your task is to brainstorm dynamic, high-impact "Deep Audit Missions" based on the database schema.
-
-            SCHEMA:
-            {schema}
-
-            MISSION ALLOCATION BY DOMAIN:
-            - retail_clothing: {retail_count} missions (dead stock, sizing anomalies, supplier delays, reorder point breaches)
-
-            SCAN INTELLIGENCE (from {scan_count} previous scans):
-
-            FOCUS AREAS (generate DEEPER missions on these — they were critical last scan):
-            {focus_areas}
-
-            QUERIES TO AVOID (already explored recently — generate NEW angles):
-            {avoid_queries}
-
-            GOAL:
-            Generate exactly {total_count} distinct audit questions (missions).
-            The questions should be sophisticated, seeking hidden patterns or critical risks.
-            DIVERSIFY: Do NOT repeat previous queries. Explore new angles each scan.
-
-            RESPONSE FORMAT:
-            Provide ONLY a JSON list of objects:
-            [
-                {{
-                    "id": "unique_string",
-                    "name": "Short Mission Name",
-                    "query": "The natural language question for the AI to solve",
-                    "domain": "one of the domains above",
-                    "severity": "CRITICAL, HIGH, or MEDIUM"
-                }}
-            ]
-        """)
-
-        chain = prompt | self.llm
-        response = await chain.ainvoke({
-            "schema": self.schema_context,
-            "retail_count": domain_weights.get("retail_clothing", 8),
-            "total_count": total_count,
-            "scan_count": adaptive["scan_count"],
-            "focus_areas": "\n".join(adaptive["focus_areas"]) or "No previous data. This is the first scan.",
-            "avoid_queries": "\n".join(f"- {q}" for q in adaptive["avoid_queries"]) or "None — first scan."
-        })
+        if settings.USE_CUSTOM_MODELS or not self.llm:
+            return self._get_offline_missions()
 
         try:
+            from langchain_core.prompts import ChatPromptTemplate
+            adaptive = scan_memory.get_adaptive_context()
+            domain_weights = {"retail_clothing": count_per_domain * 4}
+            total_count = sum(domain_weights.values())
+
+            prompt = ChatPromptTemplate.from_template("""
+                You are the "Sentinel Brain", an autonomous retail intelligence and surveillance agent.
+                Generate dynamic audit questions based on retail inventory, sales, and supply chains.
+                SCHEMA: {schema}
+                TOTAL: {total_count}
+                RESPONSE FORMAT (JSON only):
+                [
+                    {{
+                        "id": "unique_string",
+                        "name": "Short Mission Name",
+                        "query": "The natural language question",
+                        "domain": "security, compliance, risk, or operations",
+                        "severity": "CRITICAL, HIGH, or MEDIUM"
+                    }}
+                ]
+            """)
+
+            chain = prompt | self.llm
+            response = await asyncio.wait_for(
+                chain.ainvoke({
+                    "schema": self.schema_context,
+                    "total_count": total_count,
+                }),
+                timeout=5.0
+            )
+
             text = response.content
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0].strip()
             elif "```" in text:
                 text = text.split("```")[1].split("```")[0].strip()
 
-            return json.loads(text)
+            missions = json.loads(text)
+            return missions if isinstance(missions, list) and len(missions) > 0 else self._get_offline_missions()
         except Exception as e:
-            print(f"Failed to parse brainstormed missions: {e}")
-            return []
+            logger.warning(f"LLM brainstorm failed or timed out ({e}); using grounded retail surveillance missions.")
+            return self._get_offline_missions()

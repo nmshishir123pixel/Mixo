@@ -106,23 +106,25 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # LLM Settings
-    GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL_NAME: str = "gemini-3-flash-preview"
-    OPENAI_API_KEY: Optional[str] = None
-    OPENAI_BASE_URL: Optional[str] = None
-    OPENAI_MODEL_NAME: str = os.getenv("OPENAI_MODEL_NAME", "meta/llama-3.2-11b-vision-instruct")
-    OPENAI_FAST_MODEL: str = os.getenv("OPENAI_FAST_MODEL", "meta/llama-3.2-11b-vision-instruct")
-    QUBRID_API_KEY: Optional[str] = None
-    QUBRID_BASE_URL: str = "https://platform.qubrid.com/api/v1/qubridai"
-    QUBRID_MODEL_NAME: str = "meta/llama-3.2-11b-vision-instruct"
+    NVIDIA_API_KEY: Optional[str] = os.getenv("NVIDIA_API_KEY", None)
+    MODEL_NAME: str = os.getenv("MODEL_NAME", "meta/llama-3.2-11b-vision-instruct")
+    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY", None)
+    GEMINI_MODEL_NAME: str = os.getenv("GEMINI_MODEL_NAME", "gemini-3-flash-preview")
+    OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY", os.getenv("NVIDIA_API_KEY", None))
+    OPENAI_BASE_URL: Optional[str] = os.getenv("OPENAI_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    OPENAI_MODEL_NAME: str = os.getenv("MODEL_NAME", os.getenv("OPENAI_MODEL_NAME", "meta/llama-3.2-11b-vision-instruct"))
+    OPENAI_FAST_MODEL: str = os.getenv("MODEL_NAME", os.getenv("OPENAI_FAST_MODEL", "meta/llama-3.2-11b-vision-instruct"))
+    QUBRID_API_KEY: Optional[str] = os.getenv("QUBRID_API_KEY", None)
+    QUBRID_BASE_URL: str = os.getenv("QUBRID_BASE_URL", "https://platform.qubrid.com/api/v1/qubridai")
+    QUBRID_MODEL_NAME: str = os.getenv("MODEL_NAME", "meta/llama-3.2-11b-vision-instruct")
     
     # stage-specific models (auto-resolved based on provider)
-    INTENT_MODEL: str = os.getenv("INTENT_MODEL", "meta/llama-3.2-11b-vision-instruct")
-    SQL_MODEL: str = os.getenv("SQL_MODEL", "meta/llama-3.2-11b-vision-instruct")
-    CLARIFICATION_MODEL: str = os.getenv("CLARIFICATION_MODEL", "meta/llama-3.2-11b-vision-instruct")
-    DISCOVERY_MODEL: str = os.getenv("DISCOVERY_MODEL", "meta/llama-3.2-11b-vision-instruct")
-    EXTRACTION_MODEL: str = os.getenv("EXTRACTION_MODEL", "meta/llama-3.2-11b-vision-instruct")
-    RETRIEVAL_MODEL: str = os.getenv("RETRIEVAL_MODEL", "meta/llama-3.2-11b-vision-instruct")
+    INTENT_MODEL: str = os.getenv("MODEL_NAME", os.getenv("INTENT_MODEL", "meta/llama-3.2-11b-vision-instruct"))
+    SQL_MODEL: str = os.getenv("MODEL_NAME", os.getenv("SQL_MODEL", "meta/llama-3.2-11b-vision-instruct"))
+    CLARIFICATION_MODEL: str = os.getenv("MODEL_NAME", os.getenv("CLARIFICATION_MODEL", "meta/llama-3.2-11b-vision-instruct"))
+    DISCOVERY_MODEL: str = os.getenv("MODEL_NAME", os.getenv("DISCOVERY_MODEL", "meta/llama-3.2-11b-vision-instruct"))
+    EXTRACTION_MODEL: str = os.getenv("MODEL_NAME", os.getenv("EXTRACTION_MODEL", "meta/llama-3.2-11b-vision-instruct"))
+    RETRIEVAL_MODEL: str = os.getenv("MODEL_NAME", os.getenv("RETRIEVAL_MODEL", "meta/llama-3.2-11b-vision-instruct"))
     
     # Database Settings (Target DB to query)
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./retail_clothing.db")

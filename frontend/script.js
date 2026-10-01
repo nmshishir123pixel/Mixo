@@ -1,4 +1,146 @@
 // ===========================
+// Universal Business Domain Registry
+// ===========================
+const DOMAIN_REGISTRY = {
+    retail_clothing: {
+        id: 'retail_clothing',
+        name: 'Retail & E-Commerce',
+        icon: '🛍️',
+        badge: 'RETAIL',
+        description: 'Store sales, inventory velocities, stockouts, payment methods & margins',
+        placeholder: 'Ask about retail sales, inventory, stockouts, top products, payment methods...',
+        datasetNote: 'live_data/ • Store transactions, product inventory & profit margins',
+        examples: [
+            { icon: '⚠️', title: 'Stockout Risk Alerts', query: 'Which products are at risk of stockout this week?' },
+            { icon: '🏆', title: 'Top Selling Products', query: 'Show top selling products by revenue and margin' },
+            { icon: '🏪', title: 'Shop & Store Sales', query: 'Which shop had highest sales performance?' },
+            { icon: '💰', title: 'Profit & Margins', query: 'Show profit by product and category' },
+            { icon: '🏙️', title: 'Regional City Sales', query: 'What are the sales by city?' },
+            { icon: '💳', title: 'Payment Methods', query: 'Show sales by payment method (Card/UPI/Cash)' }
+        ]
+    },
+    saas_subscription: {
+        id: 'saas_subscription',
+        name: 'SaaS & Subscriptions',
+        icon: '💻',
+        badge: 'SAAS',
+        description: 'MRR/ARR growth, customer churn rate, LTV to CAC ratio & active subscription tiers',
+        placeholder: 'Ask about MRR, ARR, churn rate, subscription tiers, renewal retention...',
+        datasetNote: 'SaaS recurring revenue ledger • Plan tiers, retention rates & cohort telemetry',
+        examples: [
+            { icon: '📈', title: 'MRR & ARR Growth', query: 'What is our current Monthly Recurring Revenue (MRR) and ARR?' },
+            { icon: '📉', title: 'Churn & Retention', query: 'Show customer churn rate and net revenue retention by plan tier' },
+            { icon: '👥', title: 'LTV to CAC Ratio', query: 'Compare customer acquisition cost against lifetime value' },
+            { icon: '💎', title: 'Top Enterprise Accounts', query: 'List top enterprise subscription accounts and contract values' },
+            { icon: '🔄', title: 'Upcoming Renewals', query: 'Which enterprise accounts are up for renewal in the next 30 days?' },
+            { icon: '📊', title: 'Expansion Revenue', query: 'Show net expansion revenue and tier upgrade distribution' }
+        ]
+    },
+    healthcare_pharma: {
+        id: 'healthcare_pharma',
+        name: 'Healthcare & Medical',
+        icon: '🏥',
+        badge: 'HEALTHCARE',
+        description: 'Patient admissions, clinic occupancy, pharmacy supplies & treatment billing',
+        placeholder: 'Ask about patient volume, department occupancy, medical supplies, treatment costs...',
+        datasetNote: 'Clinical encounters ledger • Bed occupancy, pharmacy stock & treatment billing',
+        examples: [
+            { icon: '🛏️', title: 'Department Bed Occupancy', query: 'What is current bed occupancy rate across hospital departments?' },
+            { icon: '💊', title: 'Pharmacy Supply Levels', query: 'Which critical pharmaceuticals and surgical supplies need reordering?' },
+            { icon: '🩺', title: 'Patient Admissions Flow', query: 'Show patient admission counts and average consultation duration' },
+            { icon: '💵', title: 'Revenue by Department', query: 'What is revenue breakdown across outpatient and inpatient clinics?' },
+            { icon: '⏱️', title: 'Emergency Triage Times', query: 'Show average emergency triage wait time across facilities' },
+            { icon: '📋', title: 'Procedure Volume', query: 'List high-volume medical procedures and associated recovery rates' }
+        ]
+    },
+    manufacturing_supply: {
+        id: 'manufacturing_supply',
+        name: 'Manufacturing & Supply',
+        icon: '🏭',
+        badge: 'MFG',
+        description: 'OEE, defect rates, batch throughput, supplier lead times & raw material stocks',
+        placeholder: 'Ask about OEE, machine downtime, defect rates, supplier lead times...',
+        datasetNote: 'Shop floor telematics • Equipment uptime, defect logs & supply chain twin',
+        examples: [
+            { icon: '⚙️', title: 'OEE & Machine Uptime', query: 'What is the Overall Equipment Effectiveness (OEE) across assembly lines?' },
+            { icon: '🛑', title: 'Defect & Scrap Rate', query: 'Show production defect rate and scrap cost by product line' },
+            { icon: '📦', title: 'Raw Material Stock Levels', query: 'Which raw materials are below minimum buffer stock threshold?' },
+            { icon: '🚚', title: 'Supplier Lead Times', query: 'Analyze supplier on-time delivery rate and average freight delay' },
+            { icon: '🏭', title: 'Daily Plant Throughput', query: 'Show daily units manufactured versus planned target capacity' },
+            { icon: '🔧', title: 'Maintenance Downtime', query: 'List maintenance downtime hours and recurring mechanical issues' }
+        ]
+    },
+    fintech_banking: {
+        id: 'fintech_banking',
+        name: 'Fintech & Banking',
+        icon: '💳',
+        badge: 'FINTECH',
+        description: 'Transaction flows, loan delinquencies, interchange fees & risk scoring',
+        placeholder: 'Ask about loan delinquency, transaction volume, risk scores, margin revenue...',
+        datasetNote: 'Banking core ledger • Loan portfolios, risk scoring & fraud detections',
+        examples: [
+            { icon: '📊', title: 'Loan Portfolio Delinquency', query: 'Show loan default rates and 30-day delinquency by credit tier' },
+            { icon: '🛡️', title: 'High Risk Transactions', query: 'Identify transactions with anomaly flags and elevated risk scores' },
+            { icon: '💰', title: 'Net Interest Margin', query: 'What is net interest margin and fee revenue by account category?' },
+            { icon: '⚡', title: 'Payment Volumes', query: 'Show hourly transaction throughput and settlement failure rate' },
+            { icon: '👥', title: 'Customer Onboarding CAC', query: 'Compare digital onboarding cost and deposit balances by channel' },
+            { icon: '🏦', title: 'Capital Reserve Ratio', query: 'What is current liquidity ratio and reserve coverage?' }
+        ]
+    },
+    hospitality_dining: {
+        id: 'hospitality_dining',
+        name: 'Hospitality & Dining',
+        icon: '🏨',
+        badge: 'HOSPITALITY',
+        description: 'Room occupancy, RevPAR, table turnover, food & beverage cost % & average ticket',
+        placeholder: 'Ask about room occupancy, RevPAR, table turnover, F&B food costs...',
+        datasetNote: 'Property & POS ledger • RevPAR, table turns & culinary margins',
+        examples: [
+            { icon: '🛏️', title: 'Occupancy & RevPAR', query: 'What is the average room occupancy and RevPAR this month?' },
+            { icon: '🍽️', title: 'Table Turnover & Covers', query: 'Show restaurant table turnover rate and average covers by shift' },
+            { icon: '🍷', title: 'F&B Cost & Margins', query: 'Analyze Food & Beverage cost percentage and highest margin menu items' },
+            { icon: '📅', title: 'Booking Lead Times', query: 'What is the average booking lead time and cancellation rate?' },
+            { icon: '⭐', title: 'Guest Satisfaction Index', query: 'Show guest review scores correlated with room service spend' },
+            { icon: '💵', title: 'Banquet & Event Revenue', query: 'What is the total revenue generated from banquet and conference halls?' }
+        ]
+    },
+    logistics_fleet: {
+        id: 'logistics_fleet',
+        name: 'Logistics & Fleet',
+        icon: '🚚',
+        badge: 'LOGISTICS',
+        description: 'On-time dispatch, route fuel costs, fleet telematics & warehouse turnaround times',
+        placeholder: 'Ask about on-time delivery %, fuel efficiency, fleet utilization, dispatch times...',
+        datasetNote: 'Fleet telematics & dispatch • Route efficiency & hub turnaround times',
+        examples: [
+            { icon: '⏱️', title: 'On-Time Delivery (OTD)', query: 'What is the on-time delivery rate across regional distribution hubs?' },
+            { icon: '⛽', title: 'Fuel Cost per Kilometer', query: 'Show fuel consumption and cost per kilometer by vehicle class' },
+            { icon: '🚛', title: 'Fleet Asset Utilization', query: 'What percentage of the active fleet is currently in transit?' },
+            { icon: '📦', title: 'Warehouse Turnaround', query: 'Show average order picking and dock-to-stock turnaround time' },
+            { icon: '🗺️', title: 'Route Optimization', query: 'Which delivery corridors have the highest delay and detour rates?' },
+            { icon: '🛠️', title: 'Vehicle Inspection Due', query: 'List fleet units scheduled for regulatory roadworthiness inspection' }
+        ]
+    },
+    operations_risk: {
+        id: 'operations_risk',
+        name: 'Operations & Enterprise Risk',
+        icon: '🛡️',
+        badge: 'OPERATIONS',
+        description: 'Audit compliance, workplace safety, vendor risk scorecards & ESG tracking',
+        placeholder: 'Ask about compliance audits, risk incidents, SLA adherence, vendor ratings...',
+        datasetNote: 'Enterprise GRC ledger • Audit trails, SLA compliance & carbon accounting',
+        examples: [
+            { icon: '📜', title: 'Compliance Audit Status', query: 'Show policy compliance score and unresolved audit non-conformities' },
+            { icon: '🚨', title: 'Incident Risk Heatmap', query: 'Show operational risk incidents categorized by severity level' },
+            { icon: '🤝', title: 'Vendor Risk Scorecard', query: 'List third-party vendors with elevated operational risk scores' },
+            { icon: '⏱️', title: 'SLA Breach Rate', query: 'What is the internal service level agreement breach rate by department?' },
+            { icon: '🌱', title: 'Scope 1-3 Carbon Footprint', query: 'Show Scope 1, 2, and 3 greenhouse gas emissions summary' },
+            { icon: '🔐', title: 'Access Control Logs', query: 'Show unauthorized access attempts and privilege escalation logs' }
+        ]
+    }
+};
+
+// ===========================
 // Application State
 // ===========================
 const state = {
@@ -46,8 +188,10 @@ const elements = {
     resultsContent: document.getElementById('results-content'),
     toggleViewBtn: document.getElementById('toggle-view'),
     exportBtn: document.getElementById('export-btn'),
-    domainBtns: document.querySelectorAll('.domain-btn'),
-    exampleItems: document.querySelectorAll('.example-item'),
+    globalDomainSelect: document.getElementById('global-domain-select'),
+    sidebarDomainList: document.getElementById('sidebar-domain-list'),
+    sidebarExamplesList: document.getElementById('sidebar-examples-list'),
+    welcomeDomainGrid: document.getElementById('welcome-domain-grid'),
     sentinelBtn: document.getElementById('sentinel-btn'),
     sentinelDashboard: document.getElementById('sentinel-dashboard'),
     chatContainer: document.querySelector('.chat-container'),
@@ -128,28 +272,44 @@ function addMessage(content, type = 'user', options = {}) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
 
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
+    const card = document.createElement('div');
+    card.className = 'message-card';
 
-    // Render as Markdown if marked library is available, otherwise fallback to escaped text
-    if (typeof marked !== 'undefined') {
-        contentDiv.innerHTML = marked.parse(content);
-    } else {
-        contentDiv.textContent = content;
-    }
+    const header = document.createElement('div');
+    header.className = 'message-header';
 
-    const timestampDiv = document.createElement('div');
+    const sender = document.createElement('div');
+    sender.className = 'message-sender';
+    sender.innerHTML = type === 'user'
+        ? `<span class="sender-icon">👤</span> <span>You</span>`
+        : `<span class="sender-icon">⚡</span> <span>InsightOS Intelligence</span>`;
+
+    const timestampDiv = document.createElement('span');
     timestampDiv.className = 'message-timestamp';
     timestampDiv.textContent = getCurrentTime();
 
-    messageDiv.appendChild(contentDiv);
-    messageDiv.appendChild(timestampDiv);
+    header.appendChild(sender);
+    header.appendChild(timestampDiv);
+    card.appendChild(header);
 
-    // Add SQL block if present
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'message-body';
+
+    if (typeof marked !== 'undefined') {
+        bodyDiv.innerHTML = marked.parse(content);
+    } else {
+        bodyDiv.textContent = content;
+    }
+
+    card.appendChild(bodyDiv);
+
+    // Add SQL block inside message card if present
     if (options.sql) {
         const sqlBlock = createSqlBlock(options.sql);
-        messageDiv.appendChild(sqlBlock);
+        card.appendChild(sqlBlock);
     }
+
+    messageDiv.appendChild(card);
 
     // Remove welcome message if exists
     const welcomeMsg = elements.messagesContainer.querySelector('.welcome-message');
@@ -227,14 +387,10 @@ function displayResults(response) {
     state.currentInsight = insight;
     state.currentRecommendation = recommendation;
 
-    // Clear previous content
+    // Clear previous content in right panel
     elements.resultsContent.innerHTML = '';
 
-    // Create Insights Section
-    const insightsSection = renderInsights(insight, recommendation);
-    elements.resultsContent.appendChild(insightsSection);
-
-    // Create Visualization Toolbar
+    // Create Visualization Toolbar ONLY (Visualizations only in right panel)
     const toolbar = createVizToolbar(visConfig);
     elements.resultsContent.appendChild(toolbar);
 
@@ -473,11 +629,11 @@ function createChart(data, config) {
 
     const datasets = yKeys.map((key, index) => {
         const colors = [
-            { bg: 'rgba(0, 229, 255, 0.5)', border: 'rgb(0, 229, 255)' },
-            { bg: 'rgba(124, 77, 255, 0.5)', border: 'rgb(124, 77, 255)' },
-            { bg: 'rgba(0, 230, 118, 0.5)', border: 'rgb(0, 230, 118)' },
-            { bg: 'rgba(255, 171, 0, 0.5)', border: 'rgb(255, 171, 0)' },
-            { bg: 'rgba(255, 23, 68, 0.5)', border: 'rgb(255, 23, 68)' }
+            { bg: 'rgba(255, 107, 0, 0.65)', border: '#FF6B00' },
+            { bg: 'rgba(255, 140, 0, 0.60)', border: '#FF8C00' },
+            { bg: 'rgba(0, 200, 83, 0.60)', border: '#00C853' },
+            { bg: 'rgba(41, 121, 255, 0.60)', border: '#2979FF' },
+            { bg: 'rgba(255, 171, 0, 0.60)', border: '#FFAB00' }
         ];
 
         // Cycle colors if more datasets than colors
@@ -489,7 +645,7 @@ function createChart(data, config) {
             backgroundColor: color.bg,
             borderColor: color.border,
             borderWidth: 2,
-            tension: 0.4,
+            tension: 0.2,
             fill: chartType === 'area' // Fill if it's an area chart
         };
     });
@@ -521,34 +677,37 @@ function createChart(data, config) {
                     display: yKeys.length > 0,
                     position: 'top',
                     labels: {
-                        color: '#e0f7fa',
-                        font: { family: 'Inter', size: 12 }
+                        color: '#F5F5F5',
+                        font: { family: 'Inter', size: 12, weight: '600' }
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(3, 7, 18, 0.95)',
-                    titleColor: '#e0f7fa',
-                    bodyColor: '#80cbc4',
-                    borderColor: 'rgba(0, 229, 255, 0.3)',
+                    backgroundColor: '#0A0A0A',
+                    titleColor: '#F5F5F5',
+                    bodyColor: '#A3A3A3',
+                    borderColor: 'rgba(255, 107, 0, 0.4)',
                     borderWidth: 1,
-                    padding: 12,
-                    displayColors: true
+                    cornerRadius: 2,
+                    padding: 10,
+                    displayColors: true,
+                    titleFont: { family: 'JetBrains Mono', size: 12, weight: 'bold' },
+                    bodyFont: { family: 'JetBrains Mono', size: 11 }
                 }
             },
             scales: {
                 x: {
-                    grid: { color: 'rgba(0, 229, 255, 0.06)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: {
-                        color: '#80cbc4',
-                        font: { family: 'Inter', size: 11 }
+                        color: '#A0A0A0',
+                        font: { family: 'JetBrains Mono', size: 11 }
                     },
                     display: !['pie', 'doughnut'].includes(finalType)
                 },
                 y: {
-                    grid: { color: 'rgba(0, 229, 255, 0.06)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: {
-                        color: '#80cbc4',
-                        font: { family: 'Inter', size: 11 }
+                        color: '#A0A0A0',
+                        font: { family: 'JetBrains Mono', size: 11 }
                     },
                     display: !['pie', 'doughnut'].includes(finalType)
                 }
@@ -680,6 +839,106 @@ async function handleSendMessage() {
     }
 }
 
+// ===========================
+// Multi-Domain Controller Functions
+// ===========================
+function renderDomainSelectors() {
+    const activeDomain = state.selectedDomain || 'retail_clothing';
+
+    // 1. Header Select
+    if (elements.globalDomainSelect) {
+        elements.globalDomainSelect.innerHTML = Object.values(DOMAIN_REGISTRY).map(d => `
+            <option value="${d.id}" ${d.id === activeDomain ? 'selected' : ''}>${d.icon} ${d.name}</option>
+        `).join('');
+    }
+
+    // 2. Sidebar Domain List
+    if (elements.sidebarDomainList) {
+        elements.sidebarDomainList.innerHTML = Object.values(DOMAIN_REGISTRY).map(d => `
+            <button class="domain-pill-btn ${d.id === activeDomain ? 'active' : ''}" data-domain="${d.id}" onclick="switchDomain('${d.id}')">
+                <span class="domain-pill-icon">${d.icon}</span>
+                <span class="domain-pill-text">${d.name}</span>
+            </button>
+        `).join('');
+    }
+
+    // 3. Welcome Domain Matrix
+    const welcomeGrid = document.getElementById('welcome-domain-grid');
+    if (welcomeGrid) {
+        welcomeGrid.innerHTML = Object.values(DOMAIN_REGISTRY).map(d => `
+            <div class="domain-card ${d.id === activeDomain ? 'active' : ''}" data-domain="${d.id}" onclick="switchDomain('${d.id}')">
+                <span class="domain-card-icon">${d.icon}</span>
+                <div class="domain-card-content">
+                    <div class="domain-card-title">${d.name}</div>
+                    <div class="domain-card-desc">${d.description}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 4. Render domain-specific quick queries
+    renderQuickQueries(activeDomain);
+}
+
+function renderQuickQueries(domainId) {
+    const domain = DOMAIN_REGISTRY[domainId] || DOMAIN_REGISTRY.retail_clothing;
+    if (elements.sidebarExamplesList && domain.examples) {
+        elements.sidebarExamplesList.innerHTML = domain.examples.map(ex => `
+            <div class="example-item" data-query="${escapeHtml(ex.query)}" onclick="handleExampleClick('${escapeHtml(ex.query).replace(/'/g, "\\'")}')">
+                <span class="example-icon">${ex.icon}</span>
+                <span>${ex.title}</span>
+            </div>
+        `).join('');
+    }
+
+    // Update query input placeholder
+    if (elements.queryInput && domain.placeholder) {
+        elements.queryInput.placeholder = domain.placeholder;
+    }
+}
+
+function switchDomain(domainId) {
+    if (!DOMAIN_REGISTRY[domainId]) return;
+    state.selectedDomain = domainId;
+
+    // Sync header dropdown
+    if (elements.globalDomainSelect) {
+        elements.globalDomainSelect.value = domainId;
+    }
+
+    // Sync sidebar active pills
+    if (elements.sidebarDomainList) {
+        elements.sidebarDomainList.querySelectorAll('.domain-pill-btn').forEach(btn => {
+            if (btn.dataset.domain === domainId) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // Sync welcome grid active cards
+    const welcomeGrid = document.getElementById('welcome-domain-grid');
+    if (welcomeGrid) {
+        welcomeGrid.querySelectorAll('.domain-card').forEach(card => {
+            if (card.dataset.domain === domainId) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    }
+
+    // Update quick queries in sidebar
+    renderQuickQueries(domainId);
+}
+window.switchDomain = switchDomain;
+
+function handleDomainChange(domain) {
+    switchDomain(domain);
+}
+window.handleDomainChange = handleDomainChange;
+
 function handleClearChat() {
     state.conversationHistory = [];
     state.conversationId = generateId();
@@ -688,22 +947,38 @@ function handleClearChat() {
     state.currentInsight = null;
     state.currentRecommendation = null;
 
+    const activeDomain = state.selectedDomain || 'retail_clothing';
+    const domainCardsHtml = Object.values(DOMAIN_REGISTRY).map(d => `
+        <div class="domain-card ${d.id === activeDomain ? 'active' : ''}" data-domain="${d.id}" onclick="switchDomain('${d.id}')">
+            <span class="domain-card-icon">${d.icon}</span>
+            <div class="domain-card-content">
+                <div class="domain-card-title">${d.name}</div>
+                <div class="domain-card-desc">${d.description}</div>
+            </div>
+        </div>
+    `).join('');
+
     elements.messagesContainer.innerHTML = `
         <div class="welcome-message">
-            <h2>👋 Welcome to DerivInsight</h2>
-            <p>Ask me anything about your data in natural language. I'll convert it to SQL and show you the results!</p>
+            <h2>👋 Welcome to InsightOS Universal Intelligence</h2>
+            <p>Select your business domain to execute specialized queries, AI diagnostics, and proactive decision pipelines:</p>
+            
+            <div class="first-page-domain-selector" id="welcome-domain-grid">
+                ${domainCardsHtml}
+            </div>
+
             <div class="welcome-features">
                 <div class="feature">
-                    <span class="feature-icon">🤖</span>
-                    <span>AI-Powered Queries</span>
+                    <span class="feature-icon">⚡</span>
+                    <span>Multi-Industry Intelligence</span>
                 </div>
                 <div class="feature">
                     <span class="feature-icon">📊</span>
-                    <span>Visual Analytics</span>
+                    <span>Finding → Insight → Action</span>
                 </div>
                 <div class="feature">
-                    <span class="feature-icon">⚡</span>
-                    <span>Real-time Results</span>
+                    <span class="feature-icon">🛡️</span>
+                    <span>Proactive Risk & Anomaly Alerts</span>
                 </div>
             </div>
         </div>
@@ -711,42 +986,10 @@ function handleClearChat() {
 
     elements.resultsContent.innerHTML = `
         <div class="empty-state">
-            <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-                <circle cx="60" cy="60" r="50" stroke="url(#emptyGradient)" stroke-width="2" opacity="0.3"/>
-                <path d="M60 40v40M40 60h40" stroke="url(#emptyGradient)" stroke-width="2" stroke-linecap="round"/>
-                <defs>
-                    <linearGradient id="emptyGradient" x1="0" y1="0" x2="120" y2="120">
-                        <stop offset="0%" stop-color="#00e5ff"/>
-                        <stop offset="100%" stop-color="#7c4dff"/>
-                    </linearGradient>
-                </defs>
-            </svg>
             <h3>No Results Yet</h3>
-            <p>Run a query to see data visualizations and tables here</p>
+            <p>Run a query in the assistant to inspect data tables and charts</p>
         </div>
     `;
-}
-
-function handleDomainChange(domain) {
-    state.selectedDomain = domain;
-
-    // Update sidebar UI buttons
-    elements.domainBtns.forEach(btn => {
-        if (btn.dataset.domain === domain) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    // Update first-page domain cards
-    document.querySelectorAll('.domain-card').forEach(card => {
-        if (card.dataset.domain === domain) {
-            card.classList.add('active');
-        } else {
-            card.classList.remove('active');
-        }
-    });
 }
 
 function handleExampleClick(query) {
@@ -875,39 +1118,53 @@ async function runSentinelScan() {
 
     try {
         const response = await fetch(`${state.apiUrl}/api/v1/sentinel/scan`);
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
         const data = await response.json();
 
         state.sentinelScans++;
-        state.sentinelDetections = data.detections;
+        const detections = Array.isArray(data.detections) ? data.detections : [];
+        state.sentinelDetections = detections;
 
-        renderSentinelDetections(data.detections);
-        updateSentinelStats(data.detections);
+        renderSentinelDetections(detections);
+        updateSentinelStats(detections);
     } catch (error) {
         console.error('Sentinel Scan Failed:', error);
+        Object.values(elements.feeds).forEach(f => {
+            f.innerHTML = `<div class="scan-error">Scan failed: ${error.message}</div>`;
+        });
     } finally {
         elements.sentinelGlobalLoading.classList.add('hidden');
     }
 }
 
 function renderSentinelDetections(detections) {
+    const safeDetections = Array.isArray(detections) ? detections : [];
     // Group detections for 3 columns
     const columns = {
-        security: detections.filter(d => d.domain === 'security' || d.domain === 'risk'),
-        compliance: detections.filter(d => d.domain === 'compliance'),
-        operations: detections.filter(d => d.domain === 'operations')
+        security: safeDetections.filter(d => d && (d.domain === 'security' || d.domain === 'risk')),
+        compliance: safeDetections.filter(d => d && d.domain === 'compliance'),
+        operations: safeDetections.filter(d => d && d.domain === 'operations')
     };
 
     Object.keys(columns).forEach(colKey => {
         const container = elements.feeds[colKey];
-        columns[colKey].forEach(det => {
-            container.appendChild(createDetectionCard(det));
-        });
+        if (!container) return;
+        container.innerHTML = '';
+        if (columns[colKey].length === 0) {
+            container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); padding:0.5rem; font-family:var(--font-mono);">No anomalies detected in this channel</div>';
+        } else {
+            columns[colKey].forEach(det => {
+                container.appendChild(createDetectionCard(det));
+            });
+        }
     });
 }
 
 function createDetectionCard(det) {
     const card = document.createElement('div');
-    card.className = `detection-card severity-${det.severity} mini`;
+    card.className = `detection-card severity-${det.severity || 'MEDIUM'} mini`;
 
     // Create visualization if recommended
     let chartHtml = '';
@@ -920,11 +1177,11 @@ function createDetectionCard(det) {
 
     card.innerHTML = `
         <div class="detection-meta">
-            <span class="severity-pill ${det.severity}">${det.severity}</span>
+            <span class="severity-pill ${det.severity || 'MEDIUM'}">${det.severity || 'MEDIUM'}</span>
             <span class="detection-time">LIVE</span>
         </div>
         <div class="detection-body">
-            <h5>${det.mission_name}</h5>
+            <h5>${det.mission_name || 'Surveillance Mission'}</h5>
             ${chartHtml}
             <div class="compact-insight">
                 ${marked.parse(det.insight || '')}
@@ -965,9 +1222,9 @@ function createMiniChart(canvas, data, config) {
             datasets: [{
                 label: yKey,
                 data: data.slice(0, 5).map(row => parseFloat(row[yKey]) || 0),
-                backgroundColor: 'rgba(0, 229, 255, 0.3)',
-                borderColor: '#00e5ff',
-                borderWidth: 1,
+                backgroundColor: 'rgba(255, 107, 0, 0.35)',
+                borderColor: '#FF6B00',
+                borderWidth: 1.5,
                 fill: config.chart_type === 'area'
             }]
         },
@@ -984,11 +1241,12 @@ function createMiniChart(canvas, data, config) {
 }
 
 function updateSentinelStats(detections) {
-    elements.scanCount.textContent = state.sentinelScans;
-    elements.detectionCount.textContent = detections.length;
+    const safeDetections = Array.isArray(detections) ? detections : [];
+    if (elements.scanCount) elements.scanCount.textContent = state.sentinelScans;
+    if (elements.detectionCount) elements.detectionCount.textContent = safeDetections.length;
 
-    const criticalCount = detections.filter(d => d.severity === 'CRITICAL').length;
-    elements.criticalAlertCount.textContent = criticalCount;
+    const criticalCount = safeDetections.filter(d => d && (d.severity === 'CRITICAL' || d.severity === 'HIGH')).length;
+    if (elements.criticalAlertCount) elements.criticalAlertCount.textContent = criticalCount;
 }
 
 async function runDomainScan(domain) {
@@ -1008,20 +1266,28 @@ async function runDomainScan(domain) {
 
     try {
         const response = await fetch(`${state.apiUrl}/api/v1/sentinel/scan/${domain}`);
+        if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+        }
         const data = await response.json();
 
         state.sentinelScans++;
 
         // Render detections into the specific section
         feedContainer.innerHTML = '';
-        const detections = data.detections || [];
-        detections.forEach(det => {
-            feedContainer.appendChild(createDetectionCard(det));
-        });
+        const detections = Array.isArray(data.detections) ? data.detections : [];
+        if (detections.length === 0) {
+            feedContainer.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); padding:0.5rem; font-family:var(--font-mono);">No anomalies detected in this domain</div>';
+        } else {
+            detections.forEach(det => {
+                feedContainer.appendChild(createDetectionCard(det));
+            });
+        }
 
         // Merge into global detections for stats
+        const currentDetections = Array.isArray(state.sentinelDetections) ? state.sentinelDetections : [];
         state.sentinelDetections = [
-            ...state.sentinelDetections.filter(d => {
+            ...currentDetections.filter(d => {
                 const dSection = d.domain === 'risk' ? 'security' : d.domain;
                 return dSection !== sectionId;
             }),
@@ -1082,18 +1348,6 @@ elements.apiUrlInput.addEventListener('change', (e) => {
     checkApiConnection();
 });
 
-elements.domainBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        handleDomainChange(btn.dataset.domain);
-    });
-});
-
-elements.exampleItems.forEach(item => {
-    item.addEventListener('click', () => {
-        handleExampleClick(item.dataset.query);
-    });
-});
-
 elements.exportBtn.addEventListener('click', () => toggleExportDropdown());
 elements.sentinelBtn.addEventListener('click', toggleSentinelMode);
 if (elements.toggleViewBtn) {
@@ -1123,23 +1377,26 @@ if (elements.toggleViewBtn) {
 // Initialization
 // ===========================
 async function initialize() {
-    console.log('🚀 Initializing DerivInsight Frontend...');
+    console.log('🚀 Initializing InsightOS Universal Decision Engine...');
+
+    // Render multi-domain selector components & default domain
+    renderDomainSelectors();
+    switchDomain(state.selectedDomain || 'retail_clothing');
 
     // Check API connection
     await checkApiConnection();
 
-    // Set initial domain
-    handleDomainChange('retail_clothing');
-
     // Focus input
-    elements.queryInput.focus();
+    if (elements.queryInput) {
+        elements.queryInput.focus();
+    }
 
     if (state.isSentinelMode) {
         elements.sentinelBtn.innerHTML = '<span class="icon">💬</span> QUERY CHAT';
         runSentinelScan();
     }
 
-    console.log('✅ Initialization complete');
+    console.log('✅ Initialization complete with Multi-Domain capabilities');
 }
 
 // Start the app when DOM is ready
@@ -1184,10 +1441,6 @@ function switchToTab(tabName) {
         if (project2Dashboard) {
             project2Dashboard.classList.remove('hidden');
             project2Dashboard.style.display = 'block';
-            const iframe = document.getElementById('project2-iframe');
-            if (iframe && (!iframe.src || iframe.src === '' || iframe.src === 'about:blank')) {
-                iframe.src = 'http://localhost:3000';
-            }
             project2Dashboard.scrollIntoView({ behavior: 'smooth' });
         }
         if (tabProject2) tabProject2.classList.add('active');
@@ -1224,9 +1477,10 @@ async function fetchAutoInsights() {
     const baseUrl = `${window.location.protocol}//${host}:8080`;
 
     try {
-        const res = await fetch(`${baseUrl}/api/v1/insights/today?domain=${state.currentDomain || 'retail_clothing'}`);
+        const activeDomain = state.selectedDomain || 'retail_clothing';
+        const res = await fetch(`${baseUrl}/api/v1/insights/today?domain=${activeDomain}`);
         const data = await res.json();
-        _autoInsightsData = data.insights || [];
+        _autoInsightsData = Array.isArray(data.insights) ? data.insights : [];
 
         // Update proactive summary headline banner
         const headlineEl = document.getElementById('proactive-headline-text');
@@ -1264,12 +1518,13 @@ async function fetchAutoInsights() {
 window.fetchAutoInsights = fetchAutoInsights;
 
 function updateRuleCounters(insights) {
-    const stockoutCount = insights.filter(i => i.type === 'stockout' || i.insight_type === 'stockout' || i.type === 'stockout_risk').length;
-    const criticalCount = insights.filter(i => (i.severity || '').toLowerCase() === 'critical' || (i.severity || '').toLowerCase() === 'high').length;
-    const salesDropCount = insights.filter(i => i.type === 'sales_drop' || i.insight_type === 'sales_drop').length;
-    const supplierCount = insights.filter(i => i.type === 'supplier_risk' || i.insight_type === 'supplier_risk').length;
+    const safeList = Array.isArray(insights) ? insights : [];
+    const stockoutCount = safeList.filter(i => i && (i.type === 'stockout' || i.insight_type === 'stockout' || i.type === 'stockout_risk')).length;
+    const criticalCount = safeList.filter(i => i && ((i.severity || '').toLowerCase() === 'critical' || (i.severity || '').toLowerCase() === 'high')).length;
+    const salesDropCount = safeList.filter(i => i && (i.type === 'sales_drop' || i.insight_type === 'sales_drop')).length;
+    const supplierCount = safeList.filter(i => i && (i.type === 'supplier_risk' || i.insight_type === 'supplier_risk')).length;
 
-    const total = insights.length || 1;
+    const total = safeList.length || 1;
 
     const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setEl('stockout-count', stockoutCount);
@@ -1453,31 +1708,8 @@ document.addEventListener('click', (e) => {
 });
 
 // ===========================
-// Project 2 (Next.js Hub) Interactive Controllers
+// Enterprise Ontology Interactive Controllers
 // ===========================
-function toggleProject2Mode() {
-    const nativeView = document.getElementById('project2-native-view');
-    const iframeView = document.getElementById('project2-iframe-view');
-    const toggleBtn = document.getElementById('p2-mode-toggle');
-
-    if (!nativeView || !iframeView) return;
-
-    if (nativeView.style.display === 'none') {
-        nativeView.style.display = 'block';
-        iframeView.style.display = 'none';
-        if (toggleBtn) toggleBtn.innerHTML = '🖥️ Switch View Mode';
-    } else {
-        nativeView.style.display = 'none';
-        iframeView.style.display = 'block';
-        const iframe = document.getElementById('project2-iframe');
-        if (iframe && (!iframe.src || iframe.src === '' || iframe.src === 'about:blank')) {
-            iframe.src = 'http://localhost:3000';
-        }
-        if (toggleBtn) toggleBtn.innerHTML = '🎛️ Switch View Mode';
-    }
-}
-window.toggleProject2Mode = toggleProject2Mode;
-
 async function fetchProject2Ontology() {
     const skuInput = document.getElementById('p2-sku-input');
     const inspectBtn = document.getElementById('p2-inspect-btn');
@@ -1493,8 +1725,7 @@ async function fetchProject2Ontology() {
         inspectBtn.innerText = '⏳ Evaluating...';
     }
 
-    const host = window.location.hostname || 'localhost';
-    const baseUrl = `${window.location.protocol}//${host}:8080`;
+    const baseUrl = window.location.origin || 'http://127.0.0.1:8080';
 
     try {
         const [priceRes, supplyRes, carbonRes] = await Promise.all([
@@ -1660,36 +1891,56 @@ async function triggerLiveExcelSync() {
 window.triggerLiveExcelSync = triggerLiveExcelSync;
 
 // ==========================================
-// Email Alert Notifications Controller
+// Email Alert Notifications Controller (Auto-Saving)
 // ==========================================
+let emailAutoSaveTimeout = null;
+
 async function loadEmailConfig() {
     const badge = document.getElementById('email-mode-badge');
     const senderInput = document.getElementById('email-sender-input');
+    const passInput = document.getElementById('email-password-input');
     const receiverInput = document.getElementById('email-receiver-input');
     const serverInput = document.getElementById('email-smtp-server');
     const portInput = document.getElementById('email-smtp-port');
-    const feedback = document.getElementById('email-config-feedback');
 
+    // 1. Populate immediately from localStorage
+    const savedSender = localStorage.getItem('insightos_smtp_sender_email');
+    const savedPass = localStorage.getItem('insightos_smtp_password');
+    const savedReceiver = localStorage.getItem('insightos_smtp_recipients');
+    const savedServer = localStorage.getItem('insightos_smtp_server');
+    const savedPort = localStorage.getItem('insightos_smtp_port');
+
+    if (senderInput && savedSender) senderInput.value = savedSender;
+    if (passInput && savedPass) passInput.value = savedPass;
+    if (receiverInput && savedReceiver) receiverInput.value = savedReceiver;
+    if (serverInput && savedServer) serverInput.value = savedServer;
+    if (portInput && savedPort) portInput.value = savedPort;
+
+    // 2. Fetch server status and sync
     try {
         const res = await fetch(`${state.apiUrl}/api/v1/insights/email/status`);
         if (!res.ok) return;
         const data = await res.json();
 
-        if (senderInput && data.sender_email && data.sender_email !== 'Not configured') {
+        if (senderInput && !senderInput.value && data.sender_email && data.sender_email !== 'Not configured') {
             senderInput.value = data.sender_email;
+            localStorage.setItem('insightos_smtp_sender_email', data.sender_email);
         }
-        if (receiverInput && data.recipients && data.recipients.length > 0) {
+        if (receiverInput && !receiverInput.value && data.recipients && data.recipients.length > 0) {
             receiverInput.value = data.recipients.join(', ');
+            localStorage.setItem('insightos_smtp_recipients', data.recipients.join(', '));
         }
-        if (serverInput && data.smtp_server && data.smtp_server !== 'Not configured') {
+        if (serverInput && !serverInput.value && data.smtp_server && data.smtp_server !== 'Not configured') {
             serverInput.value = data.smtp_server;
+            localStorage.setItem('insightos_smtp_server', data.smtp_server);
         }
-        if (portInput && data.smtp_port) {
+        if (portInput && !portInput.value && data.smtp_port) {
             portInput.value = data.smtp_port;
+            localStorage.setItem('insightos_smtp_port', String(data.smtp_port));
         }
 
         if (badge) {
-            if (data.is_configured) {
+            if (data.is_configured || (senderInput?.value && passInput?.value && receiverInput?.value)) {
                 badge.innerText = 'ACTIVE SMTP';
                 badge.style.background = 'rgba(0, 230, 118, 0.2)';
                 badge.style.color = '#00e676';
@@ -1702,10 +1953,68 @@ async function loadEmailConfig() {
             }
         }
     } catch (err) {
-        console.warn('Could not load email configuration:', err);
+        console.warn('Could not load email configuration from backend:', err);
     }
 }
 window.loadEmailConfig = loadEmailConfig;
+
+function handleEmailInputAutoSave() {
+    const senderInput = document.getElementById('email-sender-input');
+    const passInput = document.getElementById('email-password-input');
+    const receiverInput = document.getElementById('email-receiver-input');
+    const serverInput = document.getElementById('email-smtp-server');
+    const portInput = document.getElementById('email-smtp-port');
+    const feedback = document.getElementById('email-config-feedback');
+
+    const sender = (senderInput?.value || '').trim();
+    const pass = (passInput?.value || '').trim();
+    const receiver = (receiverInput?.value || '').trim();
+    const server = (serverInput?.value || '').trim();
+    const port = (portInput?.value || '').trim();
+
+    // Store in localStorage immediately
+    if (sender) localStorage.setItem('insightos_smtp_sender_email', sender);
+    if (pass) localStorage.setItem('insightos_smtp_password', pass);
+    if (receiver) localStorage.setItem('insightos_smtp_recipients', receiver);
+    if (server) localStorage.setItem('insightos_smtp_server', server);
+    if (port) localStorage.setItem('insightos_smtp_port', port);
+
+    // Debounce server update
+    clearTimeout(emailAutoSaveTimeout);
+    emailAutoSaveTimeout = setTimeout(async () => {
+        if (!sender && !receiver && !pass) return;
+        try {
+            const res = await fetch(`${state.apiUrl}/api/v1/insights/email/config`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sender_email: sender || null,
+                    sender_password: pass || null,
+                    receiver_emails: receiver || null,
+                    smtp_server: server || null,
+                    smtp_port: port ? parseInt(port) : 587
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const badge = document.getElementById('email-mode-badge');
+                if (badge && (data.current_status?.is_configured || (sender && pass && receiver))) {
+                    badge.innerText = 'ACTIVE SMTP';
+                    badge.style.background = 'rgba(0, 230, 118, 0.2)';
+                    badge.style.color = '#00e676';
+                    badge.style.borderColor = 'rgba(0, 230, 118, 0.4)';
+                }
+                if (feedback) {
+                    feedback.innerHTML = '<span style="color:#00e676; font-size: 0.65rem;">✓ Credentials saved</span>';
+                    setTimeout(() => { feedback.innerHTML = ''; }, 3000);
+                }
+            }
+        } catch (e) {
+            console.warn('Auto-save email config failed:', e);
+        }
+    }, 800);
+}
+window.handleEmailInputAutoSave = handleEmailInputAutoSave;
 
 async function saveEmailConfig() {
     const btn = document.getElementById('btn-save-email-config');
@@ -1730,6 +2039,13 @@ async function saveEmailConfig() {
         return;
     }
 
+    // Persist immediately in localStorage
+    if (sender) localStorage.setItem('insightos_smtp_sender_email', sender);
+    if (pass) localStorage.setItem('insightos_smtp_password', pass);
+    if (receiver) localStorage.setItem('insightos_smtp_recipients', receiver);
+    if (server) localStorage.setItem('insightos_smtp_server', server);
+    if (!isNaN(port)) localStorage.setItem('insightos_smtp_port', String(port));
+
     try {
         if (btn) {
             btn.innerHTML = '<span>⏳</span> Saving...';
@@ -1753,11 +2069,9 @@ async function saveEmailConfig() {
             throw new Error(data.detail || 'Failed to save email settings');
         }
 
-        if (passInput) passInput.value = ''; // clear password field for security
-
         const currentStatus = data.current_status || {};
         if (badge) {
-            if (currentStatus.is_configured) {
+            if (currentStatus.is_configured || (sender && pass && receiver)) {
                 badge.innerText = 'ACTIVE SMTP';
                 badge.style.background = 'rgba(0, 230, 118, 0.2)';
                 badge.style.color = '#00e676';
@@ -1771,7 +2085,7 @@ async function saveEmailConfig() {
         }
 
         if (feedback) {
-            feedback.innerHTML = `<span style="color:#00e676;">✓ Settings saved! (${currentStatus.mode || 'Ready'})</span>`;
+            feedback.innerHTML = `<span style="color:#00e676;">✓ Credentials saved permanently! (${currentStatus.mode || 'Ready'})</span>`;
             setTimeout(() => { feedback.innerHTML = ''; }, 4500);
         }
     } catch (err) {
@@ -1781,7 +2095,7 @@ async function saveEmailConfig() {
         }
     } finally {
         if (btn) {
-            btn.innerHTML = '<span>💾</span> Save';
+            btn.innerHTML = '<span>💾</span> Save Config';
             btn.disabled = false;
         }
     }
@@ -1828,7 +2142,7 @@ async function testEmailAlert() {
         const data = await res.json();
 
         if (data.details && badge) {
-            if (data.details.is_configured) {
+            if (data.details.is_configured || (sender && pass && receiver)) {
                 badge.innerText = 'ACTIVE SMTP';
                 badge.style.background = 'rgba(0, 230, 118, 0.2)';
                 badge.style.color = '#00e676';
@@ -1870,8 +2184,8 @@ function focusEmailSettings() {
     const senderInput = document.getElementById('email-sender-input');
     if (section) {
         section.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        section.style.boxShadow = '0 0 25px rgba(0, 229, 255, 0.5)';
-        section.style.borderColor = '#00e5ff';
+        section.style.boxShadow = '0 0 25px rgba(255, 107, 0, 0.4)';
+        section.style.borderColor = 'var(--orange-500)';
         setTimeout(() => {
             section.style.boxShadow = '';
             section.style.borderColor = '';
@@ -1882,6 +2196,89 @@ function focusEmailSettings() {
     }
 }
 window.focusEmailSettings = focusEmailSettings;
+
+// ===========================
+// Live Data File & Directory Import
+// ===========================
+async function uploadDataFiles(files) {
+    const statusDiv = document.getElementById('import-upload-status');
+    if (!files || files.length === 0) return;
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+
+    try {
+        if (statusDiv) {
+            statusDiv.className = 'import-status-text';
+            statusDiv.textContent = `⏳ Uploading & syncing ${files.length} file(s)...`;
+        }
+
+        const baseUrl = state.apiUrl || window.location.origin;
+        const response = await fetch(`${baseUrl}/api/v1/sync/upload?auto_sync=true&replace_existing=true`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `Upload failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const syncedRows = data.sync_result?.rows_synced || 0;
+        const fileNames = (data.files || []).map(f => f.filename).join(', ');
+
+        if (statusDiv) {
+            statusDiv.className = 'import-status-text success';
+            statusDiv.textContent = `✓ ${fileNames} active (${syncedRows} rows synced)`;
+        }
+
+        const statusVal = document.getElementById('excel-status-val');
+        const lastSyncEl = document.getElementById('excel-last-sync');
+        if (statusVal) {
+            statusVal.innerHTML = `<span style="color:#00e676;">Synced (${syncedRows} rows)</span>`;
+        }
+        if (lastSyncEl) {
+            lastSyncEl.innerText = `Active: ${fileNames.slice(0, 25)}`;
+        }
+
+        // Add a system notification message to the chat container
+        if (typeof addMessage === 'function') {
+            addMessage(`📁 **New Dataset Active**: Loaded **${fileNames}** with **${syncedRows} rows**. All queries, auto-insights, and calculations are now using this new dataset.`, 'assistant');
+        }
+
+        // Refresh Auto Insights immediately with the new dataset
+        if (typeof window.loadAutoInsights === 'function') {
+            window.loadAutoInsights();
+        }
+        // Refresh Sentinel if in Sentinel mode
+        if (state.isSentinelMode && typeof loadSentinelData === 'function') {
+            loadSentinelData();
+        }
+    } catch (error) {
+        console.error('Import upload error:', error);
+        if (statusDiv) {
+            statusDiv.className = 'import-status-text error';
+            statusDiv.textContent = `✗ ${error.message}`;
+        }
+    }
+}
+
+function handleFileInputChange(event) {
+    const files = event.target.files;
+    uploadDataFiles(files);
+    event.target.value = '';
+}
+window.handleFileInputChange = handleFileInputChange;
+
+function handleDirInputChange(event) {
+    const files = event.target.files;
+    uploadDataFiles(files);
+    event.target.value = '';
+}
+window.handleDirInputChange = handleDirInputChange;
 
 // Load email configuration on page initialization
 if (document.readyState === 'loading') {

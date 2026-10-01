@@ -1,8 +1,8 @@
 from typing import List, Dict, Any, Optional, Union, TypedDict, Literal
 from pydantic import BaseModel, Field
 
-# Domain types for the NL2SQL pipeline
-DomainType = Literal["retail_clothing", "banking_finance", "insurance", "security", "compliance", "risk", "operations", "general"]
+# Domain types for the NL2SQL pipeline — universal multi-industry support
+DomainType = str
 
 # HLD Section 4.2: Graph State Definition
 class GraphState(TypedDict):

@@ -1,0 +1,148 @@
+{
+  "_last_touched": 1790741787.1801307,
+  "history": [
+    {
+      "timestamp": "2026-09-30T04:14:23.334356",
+      "missions": [
+        {
+          "name": "Stockout Risk & Inventory Safety Baseline",
+          "query": "Which products are at risk of stockout this week?",
+          "domain": "security",
+          "risk_score": 0,
+          "severity": "LOW",
+          "data_count": 0
+        }
+      ],
+      "domain_scores": {
+        "security": 0
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-30T04:14:45.146644",
+      "missions": [
+        {
+          "name": "Stockout Risk & Inventory Safety Baseline",
+          "query": "Which products are at risk of stockout this week?",
+          "domain": "security",
+          "risk_score": 0,
+          "severity": "LOW",
+          "data_count": 0
+        }
+      ],
+      "domain_scores": {
+        "security": 0
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-30T04:14:51.732836",
+      "missions": [
+        {
+          "name": "Pricing & Margin Compliance Audit",
+          "query": "Show profit by product",
+          "domain": "compliance",
+          "risk_score": 42,
+          "severity": "MEDIUM",
+          "data_count": 36
+        },
+        {
+          "name": "Regional Velocity & Jurisdiction Variance",
+          "query": "What are the sales by city?",
+          "domain": "compliance",
+          "risk_score": 15,
+          "severity": "LOW",
+          "data_count": 4
+        }
+      ],
+      "domain_scores": {
+        "compliance": 28
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-30T04:14:58.784389",
+      "missions": [
+        {
+          "name": "Store Sales Velocity & Channel Flow",
+          "query": "Which shop had highest sales?",
+          "domain": "operations",
+          "risk_score": 10,
+          "severity": "LOW",
+          "data_count": 1
+        },
+        {
+          "name": "Inventory SKU Turn Rate & Top Movers",
+          "query": "Show top selling products",
+          "domain": "operations",
+          "risk_score": 39,
+          "severity": "MEDIUM",
+          "data_count": 36
+        }
+      ],
+      "domain_scores": {
+        "operations": 24
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-30T04:15:00.582522",
+      "missions": [
+        {
+          "name": "Pricing & Margin Compliance Audit",
+          "query": "Show profit by product",
+          "domain": "compliance",
+          "risk_score": 42,
+          "severity": "MEDIUM",
+          "data_count": 36
+        },
+        {
+          "name": "Regional Velocity & Jurisdiction Variance",
+          "query": "What are the sales by city?",
+          "domain": "compliance",
+          "risk_score": 15,
+          "severity": "LOW",
+          "data_count": 4
+        }
+      ],
+      "domain_scores": {
+        "compliance": 28
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-30T04:15:42.329877",
+      "missions": [
+        {
+          "name": "Payment Method Settlement Risk",
+          "query": "Show sales by payment method",
+          "domain": "risk",
+          "risk_score": 12,
+          "severity": "LOW",
+          "data_count": 3
+        }
+      ],
+      "domain_scores": {
+        "risk": 12
+      },
+      "critical_domains": []
+    },
+    {
+      "timestamp": "2026-09-30T04:16:27.180122",
+      "missions": [
+        {
+          "name": "Payment Method Settlement Risk",
+          "query": "Show sales by payment method",
+          "domain": "risk",
+          "risk_score": 12,
+          "severity": "LOW",
+          "data_count": 3
+        }
+      ],
+      "domain_scores": {
+        "risk": 12
+      },
+      "critical_domains": []
+    }
+  ]
+}

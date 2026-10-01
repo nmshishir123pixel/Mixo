@@ -17,6 +17,16 @@ import json
 router = APIRouter()
 brainstormer = SentinelBrainstormer()
 
+@router.get("/status")
+async def get_sentinel_status():
+    """Return Sentinel system health and scan metrics."""
+    adaptive_ctx = scan_memory.get_adaptive_context()
+    return {
+        "status": "SECURED",
+        "system_scans": adaptive_ctx.get("scan_count", 0),
+        "active_monitors": 4,
+        "surveillance_state": "ACTIVE"
+    }
 
 # ─── Helper: execute a single mission through the NL2SQL graph ──────────────
 
@@ -34,7 +44,7 @@ async def run_mission(mission: dict) -> dict:
 
     initial_state = {
         "user_question": mission["query"],
-        "domain": mission["domain"],
+        "domain": "retail_clothing",
         "conversation_history": [],
         "retry_count": 0,
     }

@@ -13,43 +13,26 @@ class IntentClassificationModule:
         """
         Returns (intent, confidence, complexity, needs_clarification)
         """
-        if settings.USE_CUSTOM_MODELS:
+        is_retail = str(domain).lower() in ["retail", "retail_clothing"]
+
+        # 1. For Retail Domain: Always use our custom trained ML Intent Classifier
+        if is_retail:
             from app.services.intent_service import intent_service
-            logger.info(f"[IntentModule] Using Custom ML Intent Classifier for query: '{query}'")
+            logger.info(f"[IntentModule] Using Custom Retail ML Intent Classifier for query: '{query}'")
             return await intent_service.classify(query, conversation_history, domain)
 
-        # Fallback to LLM if explicitly enabled
+        # 2. For Other Domains: Check greetings and schema queries, default to SELECT
         clean_q = query.lower().strip().strip("!").strip(".")
         greetings = {"hi", "hello", "hey", "help", "good morning", "good afternoon", "hi there", "greetings"}
         if clean_q in greetings:
-            return ("OFF_TOPIC", 1.0, "SIMPLE", True)
+            return ("OFF_TOPIC", 1.0, "Simple", True)
 
-        logger.info(f"Classifying intent with LLM for domain: {domain} | Query: {query}")
-        from app.services.llm import llm_service
-        from app.core.resilient_llm import call_llm_structured
-        from app.core.llm_schemas import IntentClassification, SAFE_FALLBACK_INTENT
-        
-        prompt = f"""You are an AI assistant for a Database system.
-User Query: "{query}"
-Analyze the query and return a valid JSON with intent, confidence, complexity, needs_clarification."""
-        
-        try:
-            result = await call_llm_structured(
-                prompt=prompt,
-                schema=IntentClassification,
-                llm_call_fn=llm_service.generate_response,
-                fallback=SAFE_FALLBACK_INTENT,
-                model_name=settings.INTENT_MODEL,
-            )
-            intent = result.intent
-            confidence = result.confidence
-            complexity = result.complexity
-            needs_clarification = result.needs_clarification
-            if intent == "SELECT":
-                needs_clarification = False
-            return intent, confidence, complexity, needs_clarification
-        except Exception as e:
-            logger.error(f"Intent classification error: {str(e)}")
-            return "SELECT", 0.9, "Simple", False
+        schema_triggers = {"schema", "tables", "columns", "what data", "show schema", "list tables"}
+        if any(trig in clean_q for trig in schema_triggers):
+            return ("SCHEMA_QUERY", 0.95, "Simple", False)
+
+        # Standard analytical query across all domains
+        logger.info(f"[IntentModule] Classified '{query}' as SELECT for domain '{domain}'")
+        return ("SELECT", 0.95, "Medium", False)
 
 intent_module = IntentClassificationModule()
