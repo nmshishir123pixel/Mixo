@@ -205,7 +205,21 @@
             <!-- Chat Area (Query Assistant) -->
             <div class="chat-container">
                 <div class="chat-header">
-                    <h2>AI Query Assistant</h2>
+                    <div class="chat-header-title-group">
+                        <h2>AI Query Assistant</h2>
+                        <div class="model-picker-container">
+                            <span class="model-picker-tag">MODEL:</span>
+                            <select id="chat-model-select" class="chat-model-dropdown" onchange="handleModelChange(this.value)">
+                                <option value="local">🧠 Local Retail Engine (Offline / Instant)</option>
+                                <option value="nvidia">🟢 NVIDIA NIM (Nemotron-3-Super)</option>
+                                <option value="chatgpt">⚡ ChatGPT / OpenAI (Sign-in)</option>
+                            </select>
+                            <button id="chatgpt-auth-btn" class="chatgpt-auth-btn" onclick="openChatGPTAuthModal()" title="Configure ChatGPT / OpenAI Sign-In">
+                                <span class="auth-icon">🔑</span>
+                                <span id="chatgpt-auth-status-text">Connect ChatGPT</span>
+                            </button>
+                        </div>
+                    </div>
                     <button class="clear-chat-btn" id="clear-chat">
                         <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
                             <path d="M3 6h14M8 6V4a1 1 0 011-1h2a1 1 0 011 1v2m3 0v10a2 2 0 01-2 2H7a2 2 0 01-2-2V6h10z"
@@ -321,7 +335,7 @@
             </div>
 
             <!-- Enterprise Hub Dashboard -->
-            <div class="project2-container hidden" id="project2-dashboard" style="grid-column: 2 / span 2;">
+            <div class="project2-container hidden" id="project2-dashboard">
                 <div class="project2-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle);">
                     <div>
                         <span class="insights-badge">ENTERPRISE DATA BACKPLANE</span>
@@ -379,7 +393,7 @@
             </div>
 
             <!-- Results & Visualizations Panel -->
-            <div class="results-panel hidden" id="results-panel">
+            <div class="results-panel" id="results-panel">
                 <div class="results-header">
                     <h3>Results & Visualizations</h3>
                     <div class="results-actions">
@@ -432,7 +446,7 @@
             </div>
 
             <!-- Auto Insights Proactive Dashboard -->
-            <div class="insights-dashboard hidden" id="insights-dashboard" style="grid-column: 2 / span 2;">
+            <div class="insights-dashboard hidden" id="insights-dashboard">
                 <div class="insights-header">
                     <div class="insights-title-group">
                         <span class="insights-badge">PROACTIVE ENGINE</span>
@@ -506,21 +520,97 @@
                     </div>
                 </div>
 
-                <div class="insights-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-                    <button class="action-btn" id="refresh-insights-btn" style="background: var(--orange-500); color: var(--text-inverse); font-weight: 700; border-color: var(--orange-500);">
-                        <span>🔄</span> Refresh Insights
-                    </button>
-                    <button class="action-btn" id="email-setup-shortcut-btn" onclick="focusEmailSettings()">
-                        <span>📧</span> Email Alert Settings
-                    </button>
-                    <button class="action-btn secondary" id="acknowledge-all-btn">
-                        <span>Mark All Acknowledged</span>
-                    </button>
+                <div class="insights-actions" style="display: flex; gap: 0.75rem; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <div class="insights-filter-group" id="insights-filter-group">
+                        <button class="insights-filter-btn active" id="filter-btn-all" data-filter="all" onclick="filterInsights('all')">
+                            All (<span id="filter-all-count">0</span>)
+                        </button>
+                        <button class="insights-filter-btn" id="filter-btn-unread" data-filter="unread" onclick="filterInsights('unread')">
+                            Needs Attention (<span id="filter-unread-count">0</span>)
+                        </button>
+                        <button class="insights-filter-btn" id="filter-btn-acknowledged" data-filter="acknowledged" onclick="filterInsights('acknowledged')">
+                            Acknowledged (<span id="filter-ack-count">0</span>)
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button class="action-btn" id="refresh-insights-btn" style="background: var(--orange-500); color: var(--text-inverse); font-weight: 700; border-color: var(--orange-500);">
+                            <span>🔄</span> Refresh Insights
+                        </button>
+                        <button class="action-btn" id="email-setup-shortcut-btn" onclick="focusEmailSettings()">
+                            <span>📧</span> Email Alert Settings
+                        </button>
+                        <button class="action-btn secondary" id="acknowledge-all-btn">
+                            <span>✓ Mark All Acknowledged</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="insights-findings" id="insights-findings">
                     <!-- Dynamic findings will be populated here -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OpenClaw Style ChatGPT / OpenAI Authentication Modal -->
+    <div id="chatgpt-auth-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeChatGPTAuthModal()">
+        <div class="chatgpt-auth-modal-card">
+            <div class="modal-header">
+                <div class="modal-header-brand">
+                    <div class="chatgpt-badge-icon">⚡</div>
+                    <div>
+                        <h3 class="modal-title-text">Sign in with ChatGPT / OpenAI</h3>
+                        <span class="modal-subtitle-text">OpenClaw Autonomous Model Gateway</span>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeChatGPTAuthModal()" title="Close">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <p class="modal-description">
+                    Authenticate your OpenAI account or API key to route retail queries and strategic decision pipelines through ChatGPT (GPT-4o / GPT-4o-mini).
+                </p>
+
+                <div class="modal-form-group">
+                    <label for="chatgpt-api-key-input">OpenAI API Key / Token:</label>
+                    <div class="password-field-container">
+                        <input type="password" id="chatgpt-api-key-input" placeholder="sk-proj-..." autocomplete="off">
+                        <button type="button" class="btn-toggle-eye" onclick="toggleApiKeyVisibility()" title="Show/Hide Key">👁️</button>
+                    </div>
+                    <span class="form-hint">
+                        Stored locally in browser storage. Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys ↗</a>.
+                    </span>
+                </div>
+
+                <div class="modal-form-group">
+                    <label for="chatgpt-model-select">ChatGPT Model Selection:</label>
+                    <select id="chatgpt-model-select" class="modal-select-field">
+                        <option value="gpt-4o" selected>GPT-4o (Flagship Omni — Best Intelligence & Accuracy)</option>
+                        <option value="gpt-4o-mini">GPT-4o Mini (Ultra-Fast & Cost-Efficient)</option>
+                        <option value="o1-mini">o1-mini (Specialized Reasoning & Logic)</option>
+                        <option value="gpt-4-turbo">GPT-4 Turbo (High Context)</option>
+                    </select>
+                </div>
+
+                <div class="connection-status-pill" id="chatgpt-modal-status-pill">
+                    <span class="status-pulse-dot" id="chatgpt-pulse-dot"></span>
+                    <span id="chatgpt-modal-status-text">Status: Not Connected</span>
+                </div>
+
+                <div id="chatgpt-auth-feedback" class="auth-feedback-message"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="btn-test-chatgpt" class="modal-btn secondary" onclick="testChatGPTConnection()">
+                    <span>🔄</span> Test Connection
+                </button>
+                <button type="button" id="btn-save-chatgpt" class="modal-btn primary" onclick="saveChatGPTAuth()">
+                    <span>💾</span> Save & Connect
+                </button>
+                <button type="button" id="btn-disconnect-chatgpt" class="modal-btn danger hidden" onclick="disconnectChatGPT()">
+                    <span>🔌</span> Disconnect
+                </button>
             </div>
         </div>
     </div>

@@ -47,6 +47,18 @@ SQL_TEMPLATES = {
         ORDER BY total_revenue DESC
     """,
 
+    # 3b. Store / Shop Profit Performance
+    "sales_analysis_by_shop_profit": """
+        SELECT shop_name, city,
+               COUNT(transaction_id) AS total_transactions,
+               SUM(quantity) AS total_units_sold,
+               ROUND(SUM(sales), 2) AS total_revenue,
+               ROUND(SUM(profit), 2) AS total_profit
+        FROM shop_sales
+        GROUP BY shop_name, city
+        ORDER BY total_profit DESC
+    """,
+
     # 4. Regional / City Performance
     "sales_analysis_by_city": """
         SELECT city,
@@ -125,7 +137,27 @@ SQL_TEMPLATES = {
         LIMIT 15
     """,
 
-    # 10. Reorder Recommendations
+    # 9a. Stockout Risk (Real Inventory vs Safety Reorder Point)
+    "stockout_risk_inventory": """
+        SELECT COALESCE(p.style_name, i.sku) AS product,
+               i.sku,
+               i.stock_count AS current_stock,
+               i.reorder_point,
+               (i.reorder_point - i.stock_count) AS units_deficit,
+               CASE 
+                   WHEN i.stock_count <= 0 THEN 'OUT OF STOCK'
+                   WHEN i.stock_count < (i.reorder_point * 0.5) THEN 'CRITICAL'
+                   WHEN i.stock_count <= i.reorder_point THEN 'HIGH RISK'
+                   ELSE 'SAFE'
+               END AS risk_level
+        FROM inventory i
+        LEFT JOIN products p ON i.sku = p.sku
+        WHERE i.stock_count <= i.reorder_point
+        ORDER BY (i.reorder_point - i.stock_count) DESC, i.stock_count ASC
+        LIMIT 15
+    """,
+
+    # 10. Reorder Recommendations (Sales based)
     "reorder_recommendation": """
         SELECT product, category,
                SUM(quantity) AS total_units_sold,
@@ -135,6 +167,25 @@ SQL_TEMPLATES = {
         FROM shop_sales
         GROUP BY product, category
         ORDER BY total_units_sold DESC
+        LIMIT 15
+    """,
+
+    # 10a. Reorder Recommendations (Real Inventory Deficits)
+    "reorder_recommendation_inventory": """
+        SELECT COALESCE(p.style_name, i.sku) AS product,
+               i.sku,
+               i.stock_count AS current_stock,
+               i.reorder_point,
+               CASE 
+                   WHEN i.stock_count <= 0 THEN MAX(i.reorder_point * 2, 20)
+                   WHEN i.stock_count < i.reorder_point THEN (i.reorder_point - i.stock_count) + i.reorder_point
+                   ELSE i.reorder_point
+               END AS recommended_reorder_qty,
+               ROUND(COALESCE(p.unit_cost, 25.0), 2) AS estimated_unit_cost
+        FROM inventory i
+        LEFT JOIN products p ON i.sku = p.sku
+        WHERE i.stock_count <= i.reorder_point
+        ORDER BY (i.reorder_point - i.stock_count) DESC
         LIMIT 15
     """,
 
@@ -149,6 +200,24 @@ SQL_TEMPLATES = {
         FROM shop_sales
         GROUP BY product, category
         ORDER BY total_units_sold DESC
+        LIMIT 20
+    """,
+
+    # 11a. Inventory Status (Real Warehouse Stock Levels)
+    "inventory_status_inventory": """
+        SELECT COALESCE(p.style_name, i.sku) AS product,
+               i.sku,
+               i.stock_count AS current_stock,
+               i.reorder_point,
+               i.location,
+               CASE 
+                   WHEN i.stock_count <= 0 THEN 'Out of Stock'
+                   WHEN i.stock_count <= i.reorder_point THEN 'Low Stock'
+                   ELSE 'Healthy Stock'
+               END AS stock_status
+        FROM inventory i
+        LEFT JOIN products p ON i.sku = p.sku
+        ORDER BY i.stock_count ASC
         LIMIT 20
     """,
 
@@ -280,6 +349,18 @@ class RuleBasedSQLGenerator:
         logger.info(f"[SQLGenerator] Intent: {retail_intent} -> SQL: {sql[:80]}...")
         return sql
 
+    def _has_inventory_data(self) -> bool:
+        """Check if active database contains inventory table with records."""
+        try:
+            import sqlite3
+            conn = sqlite3.connect("retail_clothing.db")
+            cursor = conn.cursor()
+            res = cursor.execute("SELECT count(*) FROM inventory").fetchone()
+            conn.close()
+            return bool(res and res[0] > 0)
+        except Exception:
+            return False
+
     def _select_template(self, intent: str, query_lower: str) -> str:
         """Select the best SQL template based on intent and query keywords."""
 
@@ -297,14 +378,24 @@ class RuleBasedSQLGenerator:
 
         # 4. Stockout Risk & Critical Inventory
         if intent == "stockout_risk" or any(kw in query_lower for kw in ["stockout", "out of stock", "at risk", "critical stock", "low stock", "urgent attention"]):
+            if self._has_inventory_data():
+                return SQL_TEMPLATES["stockout_risk_inventory"]
             return SQL_TEMPLATES["stockout_risk"]
 
         # 5. Reorder Recommendations
         if intent == "reorder_recommendation" or any(kw in query_lower for kw in ["reorder", "suggested order", "restock"]):
+            if self._has_inventory_data():
+                return SQL_TEMPLATES["reorder_recommendation_inventory"]
             return SQL_TEMPLATES["reorder_recommendation"]
 
         # 6. Profit, Margin & Cost Analysis
         if any(kw in query_lower for kw in ["profit", "margin", "cost", "profitable", "net profit"]):
+            if any(kw in query_lower for kw in ["shop", "store", "store name", "shop name", "branch", "channel"]):
+                return SQL_TEMPLATES["sales_analysis_by_shop_profit"]
+            if any(kw in query_lower for kw in ["city", "cities", "location", "region"]):
+                return SQL_TEMPLATES["sales_analysis_by_city"]
+            if any(kw in query_lower for kw in ["category", "categories", "department"]):
+                return SQL_TEMPLATES["sales_analysis_by_category"]
             return SQL_TEMPLATES["profit_analysis"]
 
         # 7. Payment Methods Breakdown
@@ -339,6 +430,8 @@ class RuleBasedSQLGenerator:
 
         # 14. Inventory Status
         if intent == "inventory_status" or any(kw in query_lower for kw in ["inventory", "stock count", "stock level", "in stock"]):
+            if self._has_inventory_data():
+                return SQL_TEMPLATES["inventory_status_inventory"]
             return SQL_TEMPLATES["inventory_status"]
 
         # 15. Suppliers & Vendors

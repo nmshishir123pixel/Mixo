@@ -26,6 +26,7 @@ _INTENT_MAP = {
     "users_query": "SELECT",
     "transactions_query": "SELECT",
     "alerts_query": "SELECT",
+    "profit_analysis": "SELECT",
     "off_topic": "OFF_TOPIC",
 }
 
@@ -126,8 +127,10 @@ class IntentClassifierModel:
                 retail_intent = "transactions_query"
             elif any(k in text_lower for k in ["alert", "rule"]):
                 retail_intent = "alerts_query"
-            elif any(k in text_lower for k in ["stockout", "risk", "running low", "low stock", "run out"]):
+            elif any(k in text_lower for k in ["stockout", "risk", "running low", "low stock", "run out", "at risk", "out of stock"]):
                 retail_intent = "stockout_risk"
+            elif any(k in text_lower for k in ["profit", "margin", "cost", "profitable"]):
+                retail_intent = "profit_analysis"
             elif any(k in text_lower for k in ["reorder", "restock", "buy", "purchase order", "how many", "should we order"]):
                 retail_intent = "reorder_recommendation"
             elif any(k in text_lower for k in ["sales", "revenue", "sold", "top selling", "best selling"]):
@@ -183,10 +186,15 @@ class IntentClassifierModel:
 
         # Stockout risk
         stockout_kw = ["stockout", "out of stock", "running low", "low stock",
-                       "run out", "critical", "below reorder", "risk",
+                       "run out", "critical", "below reorder", "risk", "at risk",
                        "days of cover", "zero stock"]
         if any(kw in text_lower for kw in stockout_kw):
             return "stockout_risk", 0.85, "SELECT"
+
+        # Profit & Margin analysis
+        profit_kw = ["profit", "margin", "cost", "profitable", "net profit"]
+        if any(kw in text_lower for kw in profit_kw):
+            return "profit_analysis", 0.85, "SELECT"
 
         # Reorder
         reorder_kw = ["reorder", "purchase order", "how much.*order",

@@ -9,6 +9,9 @@ class GraphState(TypedDict):
     user_question: str
     domain: str  # retail_clothing | banking_finance | insurance | security | compliance | risk | operations | general
     conversation_history: List[Dict[str, str]]
+    model_provider: Optional[str]  # local | nvidia | chatgpt | openai
+    model_name: Optional[str]      # e.g. nvidia/nemotron-3-super-120b-a12b, gpt-4o, gpt-4o-mini
+    api_key: Optional[str]         # User-provided API key (e.g. from ChatGPT Auth)
     intent: Optional[str]
     confidence: float
     needs_clarification: bool  # True if query needs more info
@@ -30,6 +33,9 @@ class QueryRequest(BaseModel):
     domain: DomainType = "general"  # Default to general if not specified
     conversation_id: Optional[str] = None
     conversation_history: List[Dict[str, str]] = []  # Previous messages
+    model_provider: Optional[str] = "local"  # local | nvidia | chatgpt | openai
+    model_name: Optional[str] = None
+    api_key: Optional[str] = None  # User-supplied API key (e.g. from ChatGPT Auth sign-in)
 
 class QueryResponse(BaseModel):
     sql: Optional[str]
@@ -42,4 +48,8 @@ class QueryResponse(BaseModel):
     clarification_question: Optional[str] = None  # Set if needs clarification
     metadata: Dict[str, Any] = Field(default_factory=dict)
     is_final: bool = False  # True if SQL was generated, False if asking for clarification
+
+class ChatGPTVerifyRequest(BaseModel):
+    api_key: str
+    model: Optional[str] = "gpt-4o"
 

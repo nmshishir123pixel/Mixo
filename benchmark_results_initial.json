@@ -1,0 +1,602 @@
+[
+  {
+    "num": 1,
+    "question": "What is the total sales revenue?",
+    "category": "sales",
+    "sql": "SELECT SUM(sales) AS total_sales FROM shop_sales;",
+    "success": true,
+    "error": null,
+    "duration": 3.943164825439453,
+    "rows": 1
+  },
+  {
+    "num": 2,
+    "question": "Show top 5 best selling products by revenue",
+    "category": "sales",
+    "sql": "SELECT product, SUM(sales) AS total_sales FROM shop_sales GROUP BY product ORDER BY total_sales DESC LIMIT 5;",
+    "success": true,
+    "error": null,
+    "duration": 0.7913143634796143,
+    "rows": 5
+  },
+  {
+    "num": 3,
+    "question": "What are the total sales by payment method?",
+    "category": "sales",
+    "sql": "SELECT payment_method, SUM(sales) AS total_sales FROM shop_sales GROUP BY payment_method ORDER BY total_sales DESC;",
+    "success": true,
+    "error": null,
+    "duration": 4.344644069671631,
+    "rows": 4
+  },
+  {
+    "num": 4,
+    "question": "Which city has the highest sales revenue?",
+    "category": "sales",
+    "sql": "SELECT city, SUM(sales) AS total_sales FROM shop_sales GROUP BY city ORDER BY total_sales DESC LIMIT 1;",
+    "success": true,
+    "error": null,
+    "duration": 1.3362224102020264,
+    "rows": 1
+  },
+  {
+    "num": 5,
+    "question": "Show sales breakdown by shop name",
+    "category": "sales",
+    "sql": "SELECT shop_name, SUM(sales) AS total_sales FROM shop_sales GROUP BY shop_name ORDER BY total_sales DESC;",
+    "success": true,
+    "error": null,
+    "duration": 1.2596409320831299,
+    "rows": 1
+  },
+  {
+    "num": 6,
+    "question": "What is the total quantity of units sold across all shops?",
+    "category": "sales",
+    "sql": "SELECT SUM(quantity) FROM shop_sales;",
+    "success": true,
+    "error": null,
+    "duration": 0.46369051933288574,
+    "rows": 1
+  },
+  {
+    "num": 7,
+    "question": "List all transactions paid via Credit Card",
+    "category": "sales",
+    "sql": "SELECT payment_method, SUM(sales) AS total_sales FROM shop_sales WHERE payment_method = 'Credit Card' GROUP BY payment_method ORDER BY total_sales DESC;",
+    "success": true,
+    "error": null,
+    "duration": 1.1684081554412842,
+    "rows": 1
+  },
+  {
+    "num": 8,
+    "question": "Show sales in Mumbai",
+    "category": "sales",
+    "sql": "SELECT city, SUM(sales) AS total_sales FROM shop_sales GROUP BY city HAVING city = 'Mumbai';",
+    "success": true,
+    "error": null,
+    "duration": 1.3891010284423828,
+    "rows": 0
+  },
+  {
+    "num": 9,
+    "question": "What is the average transaction sales amount?",
+    "category": "sales",
+    "sql": "SELECT AVG(sales) FROM shop_sales;",
+    "success": true,
+    "error": null,
+    "duration": 0.500732421875,
+    "rows": 1
+  },
+  {
+    "num": 10,
+    "question": "Show top selling products by quantity sold",
+    "category": "sales",
+    "sql": "SELECT product, SUM(quantity) AS total_qty FROM shop_sales GROUP BY product ORDER BY total_qty DESC;",
+    "success": true,
+    "error": null,
+    "duration": 0.6700794696807861,
+    "rows": 10
+  },
+  {
+    "num": 11,
+    "question": "Which product generated the highest total profit?",
+    "category": "profit",
+    "sql": "SELECT product, SUM(profit) AS total_profit FROM shop_sales GROUP BY product ORDER BY total_profit DESC LIMIT 1;",
+    "success": true,
+    "error": null,
+    "duration": 1.0875046253204346,
+    "rows": 1
+  },
+  {
+    "num": 12,
+    "question": "Show total profit by city",
+    "category": "profit",
+    "sql": "SELECT city, SUM(profit) AS total_profit FROM shop_sales GROUP BY city ORDER BY total_profit DESC;",
+    "success": true,
+    "error": null,
+    "duration": 1.8268873691558838,
+    "rows": 1
+  },
+  {
+    "num": 13,
+    "question": "What is the overall profit across all sales?",
+    "category": "profit",
+    "sql": "SELECT SUM(profit) AS total_profit FROM shop_sales;",
+    "success": true,
+    "error": null,
+    "duration": 0.5353319644927979,
+    "rows": 1
+  },
+  {
+    "num": 14,
+    "question": "Show profit by shop name sorted from highest to lowest",
+    "category": "profit",
+    "sql": "SELECT shop_name, city, COUNT(transaction_id) AS total_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY shop_name, city ORDER BY total_profit DESC;",
+    "success": true,
+    "error": null,
+    "duration": 7.277889728546143,
+    "rows": 1
+  },
+  {
+    "num": 15,
+    "question": "Which category has the highest profit margin?",
+    "category": "profit",
+    "sql": "SELECT p.category, SUM(ss.profit) AS total_profit FROM products p JOIN shop_sales ss ON p.sku = ss.product GROUP BY p.category ORDER BY total_profit DESC;",
+    "success": true,
+    "error": null,
+    "duration": 2.1433255672454834,
+    "rows": 0
+  },
+  {
+    "num": 16,
+    "question": "Which products are currently out of stock?",
+    "category": "inventory",
+    "sql": "SELECT p.style_name, p.category, p.size, p.color FROM products p JOIN inventory i ON p.sku = i.sku WHERE i.stock_count <= i.reorder_point;",
+    "success": true,
+    "error": null,
+    "duration": 1.5089681148529053,
+    "rows": 4
+  },
+  {
+    "num": 17,
+    "question": "Show products where stock count is less than or equal to reorder point",
+    "category": "inventory",
+    "sql": "SELECT COALESCE(p.style_name, i.sku) AS product, i.sku, i.stock_count AS current_stock, i.reorder_point, CASE WHEN i.stock_count <= 0 THEN MAX(i.reorder_point * 2, 20) WHEN i.stock_count < i.reorder_point THEN (i.reorder_point - i.stock_count) + i.reorder_point ELSE i.reorder_point END AS recommended_reorder_qty, ROUND(COALESCE(p.unit_cost, 25.0), 2) AS estimated_unit_cost FROM inventory i LEFT JOIN products p ON i.sku = p.sku WHERE i.stock_count <= i.reorder_point ORDER BY (i.reorder_point - i.stock_count) DESC LIMIT 15;",
+    "success": true,
+    "error": null,
+    "duration": 7.007911443710327,
+    "rows": 4
+  },
+  {
+    "num": 18,
+    "question": "What is the total stock count across all products in inventory?",
+    "category": "inventory",
+    "sql": "SELECT SUM(stock_count) FROM inventory;",
+    "success": true,
+    "error": null,
+    "duration": 0.6738908290863037,
+    "rows": 1
+  },
+  {
+    "num": 19,
+    "question": "Show inventory levels for all products sorted by stock count ascending",
+    "category": "inventory",
+    "sql": "SELECT i.stock_count FROM inventory AS i INNER JOIN products AS p ON i.sku = p.sku ORDER BY i.stock_count ASC;",
+    "success": true,
+    "error": null,
+    "duration": 1.3612964153289795,
+    "rows": 11
+  },
+  {
+    "num": 20,
+    "question": "Which product has the highest stock count?",
+    "category": "inventory",
+    "sql": "SELECT COALESCE(p.style_name, i.sku) AS product, i.sku, i.stock_count AS current_stock, i.reorder_point, i.location, CASE WHEN i.stock_count <= 0 THEN 'Out of Stock' WHEN i.stock_count <= i.reorder_point THEN 'Low Stock' ELSE 'Healthy Stock' END AS stock_status FROM inventory i LEFT JOIN products p ON i.sku = p.sku ORDER BY i.stock_count ASC LIMIT 20;",
+    "success": true,
+    "error": null,
+    "duration": 7.009413242340088,
+    "rows": 11
+  },
+  {
+    "num": 21,
+    "question": "Show all inventory items located in Warehouse A",
+    "category": "inventory",
+    "sql": "SELECT i.sku, p.style_name, i.stock_count, i.reorder_point FROM inventory AS i JOIN products AS p ON i.sku = p.sku WHERE i.location = 'Warehouse A';",
+    "success": true,
+    "error": null,
+    "duration": 3.4173758029937744,
+    "rows": 0
+  },
+  {
+    "num": 22,
+    "question": "List products that have stock count greater than 50",
+    "category": "inventory",
+    "sql": "SELECT p.style_name, p.sku, i.stock_count FROM products p JOIN inventory i ON p.sku = i.sku WHERE i.stock_count > 50;",
+    "success": true,
+    "error": null,
+    "duration": 1.2689967155456543,
+    "rows": 0
+  },
+  {
+    "num": 23,
+    "question": "Show high risk products with stockout risk",
+    "category": "risk",
+    "sql": "SELECT p.style_name, p.category, p.size, p.color, i.stock_count, i.reorder_point FROM products p JOIN inventory i ON p.sku = i.sku WHERE i.stock_count <= i.reorder_point;",
+    "success": true,
+    "error": null,
+    "duration": 1.280060052871704,
+    "rows": 4
+  },
+  {
+    "num": 24,
+    "question": "Show dead stock products that have had no recent sales",
+    "category": "risk",
+    "sql": "SELECT p.sku, p.style_name, p.category, p.size, p.color, i.stock_count FROM products p JOIN inventory i ON p.sku = i.sku WHERE i.stock_count <= i.reorder_point AND p.sku NOT IN (SELECT sku FROM sales_events);",
+    "success": true,
+    "error": null,
+    "duration": 1.8229701519012451,
+    "rows": 0
+  },
+  {
+    "num": 25,
+    "question": "Which products have critical stock below 5 units?",
+    "category": "risk",
+    "sql": "SELECT p.sku, p.style_name, p.category, p.size, p.color, i.stock_count, i.reorder_point FROM products p JOIN inventory i ON p.sku = i.sku WHERE i.stock_count <= i.reorder_point AND i.stock_count < 5;",
+    "success": true,
+    "error": null,
+    "duration": 2.9476425647735596,
+    "rows": 0
+  },
+  {
+    "num": 26,
+    "question": "Which suppliers have an on time delivery rate below 85%?",
+    "category": "suppliers",
+    "sql": "SELECT supplier_name FROM suppliers WHERE on_time_rate < 0.85;",
+    "success": true,
+    "error": null,
+    "duration": 0.648155927658081,
+    "rows": 0
+  },
+  {
+    "num": 27,
+    "question": "List all suppliers and their lead times sorted by lead time days",
+    "category": "suppliers",
+    "sql": "SELECT supplier_name, lead_time_days FROM suppliers ORDER BY lead_time_days;",
+    "success": true,
+    "error": null,
+    "duration": 0.8149313926696777,
+    "rows": 6
+  },
+  {
+    "num": 28,
+    "question": "What is the average supplier lead time in days?",
+    "category": "suppliers",
+    "sql": "SELECT shop_name, city, COUNT(DISTINCT product) AS unique_products_sold, COUNT(transaction_id) AS total_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue FROM shop_sales GROUP BY shop_name, city ORDER BY total_revenue DESC;",
+    "success": true,
+    "error": null,
+    "duration": 7.009289026260376,
+    "rows": 1
+  },
+  {
+    "num": 29,
+    "question": "Which supplier has the highest on time rate?",
+    "category": "suppliers",
+    "sql": "SELECT supplier_name FROM suppliers ORDER BY on_time_rate DESC LIMIT 1;",
+    "success": true,
+    "error": null,
+    "duration": 1.1044647693634033,
+    "rows": 1
+  },
+  {
+    "num": 30,
+    "question": "How many total suppliers are there?",
+    "category": "suppliers",
+    "sql": "SELECT COUNT(supplier_id) FROM suppliers;",
+    "success": true,
+    "error": null,
+    "duration": 1.4829151630401611,
+    "rows": 1
+  },
+  {
+    "num": 31,
+    "question": "List suppliers from India",
+    "category": "suppliers",
+    "sql": "SELECT supplier_name FROM suppliers WHERE supplier_name LIKE '%India%';",
+    "success": true,
+    "error": null,
+    "duration": 0.7920160293579102,
+    "rows": 0
+  },
+  {
+    "num": 32,
+    "question": "Show all purchase orders with status PENDING",
+    "category": "procurement",
+    "sql": "SELECT po_id, sku, qty, status, total_cost FROM purchase_orders WHERE status = 'PENDING';",
+    "success": true,
+    "error": null,
+    "duration": 1.1854581832885742,
+    "rows": 0
+  },
+  {
+    "num": 33,
+    "question": "What is the total quantity ordered in purchase orders?",
+    "category": "procurement",
+    "sql": "SELECT SUM(qty) FROM purchase_orders;",
+    "success": true,
+    "error": null,
+    "duration": 0.45973849296569824,
+    "rows": 0
+  },
+  {
+    "num": 34,
+    "question": "List all purchase orders for SKU-1001",
+    "category": "procurement",
+    "sql": "SELECT COALESCE(p.style_name, i.sku) AS product, i.sku, i.stock_count AS current_stock, i.reorder_point, CASE WHEN i.stock_count <= 0 THEN MAX(i.reorder_point * 2, 20) WHEN i.stock_count < i.reorder_point THEN (i.reorder_point - i.stock_count) + i.reorder_point ELSE i.reorder_point END AS recommended_reorder_qty, ROUND(COALESCE(p.unit_cost, 25.0), 2) AS estimated_unit_cost FROM inventory i LEFT JOIN products p ON i.sku = p.sku WHERE p.sku = 'SKU-1001' AND i.stock_count <= i.reorder_point ORDER BY (i.reorder_point - i.stock_count) DESC LIMIT 15;",
+    "success": true,
+    "error": null,
+    "duration": 7.010953426361084,
+    "rows": 1
+  },
+  {
+    "num": 35,
+    "question": "Show recent purchase orders sorted by id descending",
+    "category": "procurement",
+    "sql": "SELECT po_id FROM purchase_orders ORDER BY po_id DESC;",
+    "success": true,
+    "error": null,
+    "duration": 0.7246983051300049,
+    "rows": 0
+  },
+  {
+    "num": 36,
+    "question": "Show purchase orders grouped by status with count",
+    "category": "procurement",
+    "sql": "SELECT status, COUNT(po_id) AS count FROM purchase_orders GROUP BY status;",
+    "success": true,
+    "error": null,
+    "duration": 2.0999388694763184,
+    "rows": 0
+  },
+  {
+    "num": 37,
+    "question": "How many total products exist in the catalog?",
+    "category": "products",
+    "sql": "SELECT COUNT(*) FROM products;",
+    "success": true,
+    "error": null,
+    "duration": 0.5417642593383789,
+    "rows": 1
+  },
+  {
+    "num": 38,
+    "question": "What is the average retail price of products?",
+    "category": "products",
+    "sql": "SELECT AVG(retail_price) FROM products;",
+    "success": true,
+    "error": null,
+    "duration": 0.4728841781616211,
+    "rows": 1
+  },
+  {
+    "num": 39,
+    "question": "Show the 5 most expensive products by retail price",
+    "category": "products",
+    "sql": "SELECT COALESCE(p.style_name, i.sku) AS product, i.sku, i.stock_count AS current_stock, i.reorder_point, i.location, CASE WHEN i.stock_count <= 0 THEN 'Out of Stock' WHEN i.stock_count <= i.reorder_point THEN 'Low Stock' ELSE 'Healthy Stock' END AS stock_status FROM inventory i LEFT JOIN products p ON i.sku = p.sku ORDER BY i.stock_count ASC LIMIT 20;",
+    "success": true,
+    "error": null,
+    "duration": 7.011706829071045,
+    "rows": 11
+  },
+  {
+    "num": 40,
+    "question": "List all products in the Footwear category",
+    "category": "products",
+    "sql": "SELECT style_name FROM products WHERE category = 'Footwear';",
+    "success": true,
+    "error": null,
+    "duration": 2.533578395843506,
+    "rows": 0
+  },
+  {
+    "num": 41,
+    "question": "Show all products with retail price greater than 50",
+    "category": "products",
+    "sql": "SELECT style_name, retail_price FROM products WHERE retail_price > 50;",
+    "success": true,
+    "error": null,
+    "duration": 3.527211904525757,
+    "rows": 3
+  },
+  {
+    "num": 42,
+    "question": "List distinct product categories",
+    "category": "products",
+    "sql": "SELECT category, COUNT(DISTINCT product) AS num_products, SUM(quantity) AS total_units_sold, COUNT(transaction_id) AS num_transactions, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY category ORDER BY total_revenue DESC;",
+    "success": true,
+    "error": null,
+    "duration": 7.010800361633301,
+    "rows": 1
+  },
+  {
+    "num": 43,
+    "question": "Show all products available in size M",
+    "category": "products",
+    "sql": "SELECT COALESCE(p.style_name, i.sku) AS product, i.sku, i.stock_count AS current_stock, i.reorder_point, i.location, CASE WHEN i.stock_count <= 0 THEN 'Out of Stock' WHEN i.stock_count <= i.reorder_point THEN 'Low Stock' ELSE 'Healthy Stock' END AS stock_status FROM inventory i LEFT JOIN products p ON i.sku = p.sku ORDER BY i.stock_count ASC LIMIT 20;",
+    "success": true,
+    "error": null,
+    "duration": 7.017982006072998,
+    "rows": 11
+  },
+  {
+    "num": 44,
+    "question": "Which products have unit cost less than 20?",
+    "category": "products",
+    "sql": "SELECT product, category, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(cost), 2) AS total_cost, ROUND(SUM(profit), 2) AS total_profit, ROUND((SUM(profit) / MAX(SUM(sales), 1.0)) * 100, 2) AS profit_margin_pct FROM shop_sales GROUP BY product, category ORDER BY total_profit DESC LIMIT 15;",
+    "success": true,
+    "error": null,
+    "duration": 7.015542507171631,
+    "rows": 10
+  },
+  {
+    "num": 45,
+    "question": "Show products and their profit margin (retail price minus unit cost)",
+    "category": "products",
+    "sql": "SELECT product, category, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(cost), 2) AS total_cost, ROUND(SUM(profit), 2) AS total_profit, ROUND((SUM(profit) / MAX(SUM(sales), 1.0)) * 100, 2) AS profit_margin_pct FROM shop_sales GROUP BY product, category ORDER BY total_profit DESC LIMIT 15;",
+    "success": true,
+    "error": null,
+    "duration": 7.007243871688843,
+    "rows": 10
+  },
+  {
+    "num": 46,
+    "question": "Show product style name, stock count, and supplier name",
+    "category": "cross_table",
+    "sql": "SELECT p.style_name, i.stock_count, s.supplier_name FROM products p JOIN inventory i ON p.sku = i.sku JOIN suppliers s ON p.sku = s.supplier_id;",
+    "success": true,
+    "error": null,
+    "duration": 2.4602506160736084,
+    "rows": 0
+  },
+  {
+    "num": 47,
+    "question": "Which supplier provides the products with the lowest stock?",
+    "category": "cross_table",
+    "sql": "SELECT s.supplier_name FROM suppliers s JOIN products p ON 1=1 JOIN inventory i ON p.sku = i.sku WHERE i.stock_count <= i.reorder_point ORDER BY i.stock_count LIMIT 1;",
+    "success": true,
+    "error": null,
+    "duration": 3.200695037841797,
+    "rows": 1
+  },
+  {
+    "num": 48,
+    "question": "Show style name and reorder point for all products",
+    "category": "cross_table",
+    "sql": "SELECT p.style_name, i.reorder_point FROM products p INNER JOIN inventory i ON p.sku = i.sku WHERE i.stock_count <= i.reorder_point;",
+    "success": true,
+    "error": null,
+    "duration": 0.9726157188415527,
+    "rows": 4
+  },
+  {
+    "num": 49,
+    "question": "List products with their current stock and retail price",
+    "category": "cross_table",
+    "sql": "SELECT p.style_name, p.retail_price, i.stock_count FROM products p INNER JOIN inventory i ON p.sku = i.sku;",
+    "success": true,
+    "error": null,
+    "duration": 1.4790685176849365,
+    "rows": 11
+  },
+  {
+    "num": 50,
+    "question": "Show supplier name for Oxford Shirt",
+    "category": "cross_table",
+    "sql": "SELECT s.supplier_name FROM suppliers s JOIN purchase_orders po ON s.supplier_id = po.sku JOIN products p ON po.sku = p.sku WHERE p.style_name = 'Oxford Shirt';",
+    "success": true,
+    "error": null,
+    "duration": 1.5436182022094727,
+    "rows": 0
+  },
+  {
+    "num": 51,
+    "question": "List all warehouses and their cities",
+    "category": "warehouses",
+    "sql": "SELECT DISTINCT i.location, s.city FROM inventory AS i INNER JOIN shop_sales AS s ON i.location = s.shop_name;",
+    "success": true,
+    "error": null,
+    "duration": 0.8687710762023926,
+    "rows": 0
+  },
+  {
+    "num": 52,
+    "question": "What is the total capacity across all warehouses?",
+    "category": "warehouses",
+    "sql": "SELECT SUM(stock_count) FROM inventory;",
+    "success": true,
+    "error": null,
+    "duration": 0.7804546356201172,
+    "rows": 1
+  },
+  {
+    "num": 53,
+    "question": "Which warehouse has the highest capacity?",
+    "category": "warehouses",
+    "sql": "SELECT location FROM inventory ORDER BY stock_count DESC LIMIT 1;",
+    "success": true,
+    "error": null,
+    "duration": 0.8507425785064697,
+    "rows": 1
+  },
+  {
+    "num": 54,
+    "question": "Show sales in Delhi paid with Cash",
+    "category": "complex",
+    "sql": "SELECT SUM(sales) AS total_sales FROM shop_sales WHERE city = 'Delhi' AND payment_method = 'Cash';",
+    "success": true,
+    "error": null,
+    "duration": 0.8862259387969971,
+    "rows": 1
+  },
+  {
+    "num": 55,
+    "question": "What is the total profit for Electronics category?",
+    "category": "complex",
+    "sql": "SELECT SUM(profit) AS total_profit FROM shop_sales WHERE category = 'Electronics';",
+    "success": true,
+    "error": null,
+    "duration": 0.7143814563751221,
+    "rows": 1
+  },
+  {
+    "num": 56,
+    "question": "Count how many transactions were made in each city",
+    "category": "complex",
+    "sql": "SELECT city, COUNT(*) AS transaction_count FROM shop_sales GROUP BY city;",
+    "success": true,
+    "error": null,
+    "duration": 1.3576784133911133,
+    "rows": 1
+  },
+  {
+    "num": 57,
+    "question": "Show average units sold per sales event",
+    "category": "complex",
+    "sql": "SELECT AVG(units_sold) FROM sales_events;",
+    "success": true,
+    "error": null,
+    "duration": 0.5859825611114502,
+    "rows": 1
+  },
+  {
+    "num": 58,
+    "question": "Find products that have zero stock but reorder point greater than 10",
+    "category": "complex",
+    "sql": "SELECT p.style_name, p.category, p.size, p.color FROM products p JOIN inventory i ON p.sku = i.sku WHERE i.stock_count = 0 AND i.reorder_point > 10;",
+    "success": true,
+    "error": null,
+    "duration": 3.9993646144866943,
+    "rows": 0
+  },
+  {
+    "num": 59,
+    "question": "Show total sales and total profit by shop name in Mumbai",
+    "category": "complex",
+    "sql": "SELECT shop_name, SUM(sales) AS total_sales, SUM(profit) AS total_profit FROM shop_sales WHERE city = 'Mumbai' GROUP BY shop_name ORDER BY total_sales DESC;",
+    "success": true,
+    "error": null,
+    "duration": 1.9513981342315674,
+    "rows": 0
+  },
+  {
+    "num": 60,
+    "question": "List top 3 cities with the lowest total sales",
+    "category": "complex",
+    "sql": "SELECT city, SUM(sales) AS total_sales FROM shop_sales GROUP BY city ORDER BY total_sales ASC LIMIT 3;",
+    "success": true,
+    "error": null,
+    "duration": 6.17873477935791,
+    "rows": 1
+  }
+]

@@ -1,0 +1,1577 @@
+{
+  "scan_id": "scan-20261008T055159",
+  "timestamp": "2026-10-08T05:51:59.033750",
+  "stats": {
+    "total_missions": 6,
+    "critical_count": 0,
+    "high_count": 0,
+    "overall_risk": 26,
+    "overall_severity": "LOW"
+  },
+  "detections": [
+    {
+      "mission_id": "sec-001",
+      "mission_name": "Stockout Risk & Inventory Safety Baseline",
+      "domain": "security",
+      "severity": "MEDIUM",
+      "risk_score": 40,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 10,
+          "score": 100,
+          "detail": "10 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 10,
+          "score": 50,
+          "detail": "10 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "CRITICAL",
+          "score": 80,
+          "detail": "Base: CRITICAL"
+        }
+      },
+      "sql": "SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_id) AS sales_frequency, ROUND(SUM(sales), 2) AS total_revenue, ROUND(AVG(sales), 2) AS avg_sale_value, 'High Sales Velocity' AS velocity_status FROM shop_sales GROUP BY product, category ORDER BY total_units_sold DESC LIMIT 15;",
+      "data_count": 10,
+      "results": [
+        {
+          "product": "Inomical Mechanical Keyboard",
+          "category": "General",
+          "total_units_sold": 2,
+          "sales_frequency": 2,
+          "total_revenue": 1539.78,
+          "avg_sale_value": 769.89,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Organic Cotton Heavyweight T-Shirt",
+          "category": "General",
+          "total_units_sold": 2,
+          "sales_frequency": 2,
+          "total_revenue": 1320.0,
+          "avg_sale_value": 660.0,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Smart Fitness Tracker Watch",
+          "category": "General",
+          "total_units_sold": 2,
+          "sales_frequency": 2,
+          "total_revenue": 499.9,
+          "avg_sale_value": 249.95,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Wireless Noise-Canceling Headphones",
+          "category": "General",
+          "total_units_sold": 2,
+          "sales_frequency": 2,
+          "total_revenue": 3419.62,
+          "avg_sale_value": 1709.81,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Ceramic Pour-Over Coffee Dripper",
+          "category": "General",
+          "total_units_sold": 1,
+          "sales_frequency": 1,
+          "total_revenue": 245.0,
+          "avg_sale_value": 245.0,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Leather Trifold RFID Wallet",
+          "category": "General",
+          "total_units_sold": 1,
+          "sales_frequency": 1,
+          "total_revenue": 480.0,
+          "avg_sale_value": 480.0,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Merino Wool Everyday Socks (3-Pack)",
+          "category": "General",
+          "total_units_sold": 1,
+          "sales_frequency": 1,
+          "total_revenue": 444.0,
+          "avg_sale_value": 444.0,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Soy Wax Aromatherapy Candle",
+          "category": "General",
+          "total_units_sold": 1,
+          "sales_frequency": 1,
+          "total_revenue": 288.0,
+          "avg_sale_value": 288.0,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Stainless Steel Insulated Tumbler",
+          "category": "General",
+          "total_units_sold": 1,
+          "sales_frequency": 1,
+          "total_revenue": 239.88,
+          "avg_sale_value": 239.88,
+          "velocity_status": "High Sales Velocity"
+        },
+        {
+          "product": "Water-Resistant Commuter Backpack",
+          "category": "General",
+          "total_units_sold": 1,
+          "sales_frequency": 1,
+          "total_revenue": 696.0,
+          "avg_sale_value": 696.0,
+          "velocity_status": "High Sales Velocity"
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "line",
+        "title": "total_units_sold by category",
+        "x_axis_key": "category",
+        "y_axis_key": "total_units_sold",
+        "label": "total_units_sold",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Identified 10 high-velocity products in the live dataset. Top in demand: Inomical Mechanical Keyboard (2 units); Organic Cotton Heavyweight T-Shirt (2 units); Smart Fitness Tracker Watch (2 units). 'Inomical Mechanical Keyboard' leads demand with 2 units sold and requires proactive inventory monitoring.",
+      "recommendation": "1. Ensure adequate inventory buffer for top high-velocity products (Inomical Mechanical Keyboard).\n2. Monitor real-time sales rates across top selling categories.\n3. Maintain supplier reorder cadences to prevent out-of-stock events.",
+      "original_query": "Which products are at risk of stockout this week?",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1791438709.354,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1791438709.358,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Using Custom Retail ML Intent Classifier for query: 'Which products are at risk of stockout this week?'"
+        },
+        {
+          "ts": 1791438709.433,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: stockout_risk (conf: 0.508) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.434,
+          "level": "INFO",
+          "node": "intent_service.py",
+          "msg": "[IntentService] Custom model result: retail=stockout_risk, workflow=SELECT, conf=0.508, complexity=Medium, clarify=False"
+        },
+        {
+          "ts": 1791438709.578,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.5076794652469221) | Needs Clarification: False"
+        },
+        {
+          "ts": 1791438709.8,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1791438709.803,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: stockout_risk (conf: 0.508) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.805,
+          "level": "INFO",
+          "node": "rule_engine.py",
+          "msg": "[SQLGenerator] Intent: stockout_risk -> SQL: SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_i..."
+        },
+        {
+          "ts": 1791438709.806,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "[Custom Retail Model] Generated SQL: SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_id) AS sales_frequency, ROUND(SUM(sales), 2) AS total_revenue, ROUND(AVG(sales), 2) AS avg_sale_value, 'High Sales Velocity' AS velocity_status FROM shop_sales GROUP BY product, category ORDER BY total_units_sold DESC LIMIT 15;"
+        },
+        {
+          "ts": 1791438709.807,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT product, category, SUM(quantity) AS total_u..."
+        },
+        {
+          "ts": 1791438709.859,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1791438709.897,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1791438709.898,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_id) AS sales_frequency, ROUND(SUM(sales), 2) AS total_revenue, ROUND(AVG(sales), 2) AS avg_sale_value, 'High Sales Velocity' AS velocity_status FROM shop_sales GROUP BY product, category ORDER BY total_units_sold DESC LIMIT 15;"
+        },
+        {
+          "ts": 1791438709.899,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 10 rows."
+        },
+        {
+          "ts": 1791438709.899,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 10"
+        },
+        {
+          "ts": 1791438709.911,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1791438709.914,
+          "level": "INFO",
+          "node": "stockout_analyzer.py",
+          "msg": "Stockout analysis for retail_clothing: 0 at-risk products found"
+        },
+        {
+          "ts": 1791438709.914,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Stockout analysis complete: 0 at-risk products"
+        },
+        {
+          "ts": 1791438709.932,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1791438709.932,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 10 rows in domain: retail_clothing"
+        },
+        {
+          "ts": 1791438709.933,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: stockout_risk (conf: 0.508) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.933,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "[Custom Retail Model] Generated domain insights."
+        },
+        {
+          "ts": 1791438709.934,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1791438709.934,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1791438709.934,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: line"
+        }
+      ]
+    },
+    {
+      "mission_id": "sec-002",
+      "mission_name": "Payment Method Settlement Risk",
+      "domain": "risk",
+      "severity": "LOW",
+      "risk_score": 15,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 4,
+          "score": 40,
+          "detail": "4 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 4,
+          "score": 20,
+          "detail": "4 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "MEDIUM",
+          "score": 25,
+          "detail": "Base: MEDIUM"
+        }
+      },
+      "sql": "SELECT payment_method, COUNT(transaction_id) AS transaction_count, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY payment_method ORDER BY total_sales DESC;",
+      "data_count": 4,
+      "results": [
+        {
+          "payment_method": "Credit Card",
+          "transaction_count": 6,
+          "total_units_sold": 6,
+          "total_sales": 5324.44,
+          "total_profit": 5324.44
+        },
+        {
+          "payment_method": "Online / UPI",
+          "transaction_count": 3,
+          "total_units_sold": 3,
+          "total_sales": 1975.92,
+          "total_profit": 1975.92
+        },
+        {
+          "payment_method": "Cash",
+          "transaction_count": 3,
+          "total_units_sold": 3,
+          "total_sales": 1127.88,
+          "total_profit": 1127.88
+        },
+        {
+          "payment_method": "Debit Card",
+          "transaction_count": 2,
+          "total_units_sold": 2,
+          "total_sales": 743.94,
+          "total_profit": 743.94
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "bar",
+        "title": "transaction_count by payment_method",
+        "x_axis_key": "payment_method",
+        "y_axis_key": "transaction_count",
+        "label": "transaction_count",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Sales analysis reveals 4 records in the dataset. Leading entity: 'Credit Card' with 6 units/transactions generating \u20b95,324.44 in revenue. Total cumulative sales: \u20b99,172.18 (14 total units).",
+      "recommendation": "1. Ensure adequate inventory for 'Credit Card' to maintain sales velocity.\n2. Replicate successful merchandising and channel strategies across other segments.\n3. Monitor conversion and velocity trends across all retail outlets.",
+      "original_query": "Show sales by payment method",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1791438709.436,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1791438709.436,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Using Custom Retail ML Intent Classifier for query: 'Show sales by payment method'"
+        },
+        {
+          "ts": 1791438709.438,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.655) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.438,
+          "level": "INFO",
+          "node": "intent_service.py",
+          "msg": "[IntentService] Custom model result: retail=sales_analysis, workflow=SELECT, conf=0.655, complexity=Simple, clarify=False"
+        },
+        {
+          "ts": 1791438709.579,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.6551201918905867) | Needs Clarification: False"
+        },
+        {
+          "ts": 1791438709.807,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1791438709.809,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.655) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.81,
+          "level": "INFO",
+          "node": "rule_engine.py",
+          "msg": "[SQLGenerator] Intent: sales_analysis -> SQL: SELECT payment_method, COUNT(transaction_id) AS transaction_count, SUM(quantity)..."
+        },
+        {
+          "ts": 1791438709.811,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "[Custom Retail Model] Generated SQL: SELECT payment_method, COUNT(transaction_id) AS transaction_count, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY payment_method ORDER BY total_sales DESC;"
+        },
+        {
+          "ts": 1791438709.811,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT payment_method, COUNT(transaction_id) AS tr..."
+        },
+        {
+          "ts": 1791438709.874,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1791438709.892,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1791438709.893,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT payment_method, COUNT(transaction_id) AS transaction_count, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY payment_method ORDER BY total_sales DESC;"
+        },
+        {
+          "ts": 1791438709.894,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 4 rows."
+        },
+        {
+          "ts": 1791438709.894,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 4"
+        },
+        {
+          "ts": 1791438709.904,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1791438709.925,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1791438709.925,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 4 rows in domain: retail_clothing"
+        },
+        {
+          "ts": 1791438709.926,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.655) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.926,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "[Custom Retail Model] Generated domain insights."
+        },
+        {
+          "ts": 1791438709.927,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1791438709.927,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1791438709.928,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: bar"
+        }
+      ]
+    },
+    {
+      "mission_id": "comp-001",
+      "mission_name": "Pricing & Margin Compliance Audit",
+      "domain": "compliance",
+      "severity": "MEDIUM",
+      "risk_score": 35,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 10,
+          "score": 100,
+          "detail": "10 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 10,
+          "score": 50,
+          "detail": "10 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "HIGH",
+          "score": 50,
+          "detail": "Base: HIGH"
+        }
+      },
+      "sql": "SELECT product, category, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(cost), 2) AS total_cost, ROUND(SUM(profit), 2) AS total_profit, ROUND((SUM(profit) / MAX(SUM(sales), 1.0)) * 100, 2) AS profit_margin_pct FROM shop_sales GROUP BY product, category ORDER BY total_profit DESC LIMIT 15;",
+      "data_count": 10,
+      "results": [
+        {
+          "product": "Wireless Noise-Canceling Headphones",
+          "category": "General",
+          "total_units_sold": 2,
+          "total_sales": 3419.62,
+          "total_cost": 0.0,
+          "total_profit": 3419.62,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Inomical Mechanical Keyboard",
+          "category": "General",
+          "total_units_sold": 2,
+          "total_sales": 1539.78,
+          "total_cost": 0.0,
+          "total_profit": 1539.78,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Organic Cotton Heavyweight T-Shirt",
+          "category": "General",
+          "total_units_sold": 2,
+          "total_sales": 1320.0,
+          "total_cost": 0.0,
+          "total_profit": 1320.0,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Water-Resistant Commuter Backpack",
+          "category": "General",
+          "total_units_sold": 1,
+          "total_sales": 696.0,
+          "total_cost": 0.0,
+          "total_profit": 696.0,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Smart Fitness Tracker Watch",
+          "category": "General",
+          "total_units_sold": 2,
+          "total_sales": 499.9,
+          "total_cost": 0.0,
+          "total_profit": 499.9,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Leather Trifold RFID Wallet",
+          "category": "General",
+          "total_units_sold": 1,
+          "total_sales": 480.0,
+          "total_cost": 0.0,
+          "total_profit": 480.0,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Merino Wool Everyday Socks (3-Pack)",
+          "category": "General",
+          "total_units_sold": 1,
+          "total_sales": 444.0,
+          "total_cost": 0.0,
+          "total_profit": 444.0,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Soy Wax Aromatherapy Candle",
+          "category": "General",
+          "total_units_sold": 1,
+          "total_sales": 288.0,
+          "total_cost": 0.0,
+          "total_profit": 288.0,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Ceramic Pour-Over Coffee Dripper",
+          "category": "General",
+          "total_units_sold": 1,
+          "total_sales": 245.0,
+          "total_cost": 0.0,
+          "total_profit": 245.0,
+          "profit_margin_pct": 100.0
+        },
+        {
+          "product": "Stainless Steel Insulated Tumbler",
+          "category": "General",
+          "total_units_sold": 1,
+          "total_sales": 239.88,
+          "total_cost": 0.0,
+          "total_profit": 239.88,
+          "profit_margin_pct": 100.0
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "line",
+        "title": "total_units_sold by category",
+        "x_axis_key": "category",
+        "y_axis_key": "total_units_sold",
+        "label": "total_units_sold",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Profit analysis across 10 items. Top contributor: 'Wireless Noise-Canceling Headphones' generating \u20b93,419.62 in net profit (100.0% margin). Total profit: \u20b99,172.18 on total sales of \u20b99,172.18.",
+      "recommendation": "1. Promote high-margin items like 'Wireless Noise-Canceling Headphones' to maximize total gross margin.\n2. Review cost structures for low-margin products.\n3. Optimize procurement pricing with suppliers for top profit generators.",
+      "original_query": "Show profit by product",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1791438709.44,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1791438709.441,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Using Custom Retail ML Intent Classifier for query: 'Show profit by product'"
+        },
+        {
+          "ts": 1791438709.442,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: general_query (conf: 0.900) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.443,
+          "level": "INFO",
+          "node": "intent_service.py",
+          "msg": "[IntentService] Custom model result: retail=general_query, workflow=SELECT, conf=0.900, complexity=Simple, clarify=False"
+        },
+        {
+          "ts": 1791438709.579,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1791438709.815,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1791438709.816,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: general_query (conf: 0.900) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.817,
+          "level": "INFO",
+          "node": "rule_engine.py",
+          "msg": "[SQLGenerator] Intent: general_query -> SQL: SELECT product, category, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2..."
+        },
+        {
+          "ts": 1791438709.818,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "[Custom Retail Model] Generated SQL: SELECT product, category, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(cost), 2) AS total_cost, ROUND(SUM(profit), 2) AS total_profit, ROUND((SUM(profit) / MAX(SUM(sales), 1.0)) * 100, 2) AS profit_margin_pct FROM shop_sales GROUP BY product, category ORDER BY total_profit DESC LIMIT 15;"
+        },
+        {
+          "ts": 1791438709.818,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT product, category, SUM(quantity) AS total_u..."
+        },
+        {
+          "ts": 1791438709.866,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1791438709.895,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1791438709.895,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT product, category, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(cost), 2) AS total_cost, ROUND(SUM(profit), 2) AS total_profit, ROUND((SUM(profit) / MAX(SUM(sales), 1.0)) * 100, 2) AS profit_margin_pct FROM shop_sales GROUP BY product, category ORDER BY total_profit DESC LIMIT 15;"
+        },
+        {
+          "ts": 1791438709.896,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 10 rows."
+        },
+        {
+          "ts": 1791438709.897,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 10"
+        },
+        {
+          "ts": 1791438709.905,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1791438709.91,
+          "level": "INFO",
+          "node": "stockout_analyzer.py",
+          "msg": "Stockout analysis for retail_clothing: 0 at-risk products found"
+        },
+        {
+          "ts": 1791438709.91,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Stockout analysis complete: 0 at-risk products"
+        },
+        {
+          "ts": 1791438709.928,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1791438709.928,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 10 rows in domain: retail_clothing"
+        },
+        {
+          "ts": 1791438709.93,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: general_query (conf: 0.900) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.93,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "[Custom Retail Model] Generated domain insights."
+        },
+        {
+          "ts": 1791438709.93,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1791438709.931,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1791438709.931,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: line"
+        }
+      ]
+    },
+    {
+      "mission_id": "comp-002",
+      "mission_name": "Regional Velocity & Jurisdiction Variance",
+      "domain": "compliance",
+      "severity": "LOW",
+      "risk_score": 6,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 1,
+          "score": 10,
+          "detail": "1 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 1,
+          "score": 5,
+          "detail": "1 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "MEDIUM",
+          "score": 25,
+          "detail": "Base: MEDIUM"
+        }
+      },
+      "sql": "SELECT city, COUNT(transaction_id) AS num_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY city ORDER BY total_revenue DESC;",
+      "data_count": 1,
+      "results": [
+        {
+          "city": "Global",
+          "num_transactions": 14,
+          "total_units_sold": 14,
+          "total_revenue": 9172.18,
+          "total_profit": 9172.18
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "bar",
+        "title": "num_transactions by city",
+        "x_axis_key": "city",
+        "y_axis_key": "num_transactions",
+        "label": "num_transactions",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Sales analysis reveals 1 records in the dataset. Leading entity: 'Global' with 14 units/transactions generating \u20b99,172.18 in revenue. Total cumulative sales: \u20b99,172.18 (14 total units).",
+      "recommendation": "1. Ensure adequate inventory for 'Global' to maintain sales velocity.\n2. Replicate successful merchandising and channel strategies across other segments.\n3. Monitor conversion and velocity trends across all retail outlets.",
+      "original_query": "What are the sales by city?",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1791438709.443,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1791438709.443,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Using Custom Retail ML Intent Classifier for query: 'What are the sales by city?'"
+        },
+        {
+          "ts": 1791438709.445,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.655) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.446,
+          "level": "INFO",
+          "node": "intent_service.py",
+          "msg": "[IntentService] Custom model result: retail=sales_analysis, workflow=SELECT, conf=0.655, complexity=Simple, clarify=False"
+        },
+        {
+          "ts": 1791438709.58,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.6551201918905867) | Needs Clarification: False"
+        },
+        {
+          "ts": 1791438709.811,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1791438709.812,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.655) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.814,
+          "level": "INFO",
+          "node": "rule_engine.py",
+          "msg": "[SQLGenerator] Intent: sales_analysis -> SQL: SELECT city, COUNT(transaction_id) AS num_transactions, SUM(quantity) AS total_u..."
+        },
+        {
+          "ts": 1791438709.814,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "[Custom Retail Model] Generated SQL: SELECT city, COUNT(transaction_id) AS num_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY city ORDER BY total_revenue DESC;"
+        },
+        {
+          "ts": 1791438709.814,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT city, COUNT(transaction_id) AS num_transact..."
+        },
+        {
+          "ts": 1791438709.864,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1791438709.901,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1791438709.901,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT city, COUNT(transaction_id) AS num_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY city ORDER BY total_revenue DESC;"
+        },
+        {
+          "ts": 1791438709.902,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 1 rows."
+        },
+        {
+          "ts": 1791438709.902,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 1"
+        },
+        {
+          "ts": 1791438709.916,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1791438709.936,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1791438709.937,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 1 rows in domain: retail_clothing"
+        },
+        {
+          "ts": 1791438709.938,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.655) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.939,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "[Custom Retail Model] Generated domain insights."
+        },
+        {
+          "ts": 1791438709.939,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1791438709.94,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1791438709.94,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: bar"
+        }
+      ]
+    },
+    {
+      "mission_id": "ops-001",
+      "mission_name": "Store Sales Velocity & Channel Flow",
+      "domain": "operations",
+      "severity": "LOW",
+      "risk_score": 10,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 1,
+          "score": 10,
+          "detail": "1 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 1,
+          "score": 5,
+          "detail": "1 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "HIGH",
+          "score": 50,
+          "detail": "Base: HIGH"
+        }
+      },
+      "sql": "SELECT shop_name, city, COUNT(transaction_id) AS total_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY shop_name, city ORDER BY total_revenue DESC;",
+      "data_count": 1,
+      "results": [
+        {
+          "shop_name": "Main Store",
+          "city": "Global",
+          "total_transactions": 14,
+          "total_units_sold": 14,
+          "total_revenue": 9172.18,
+          "total_profit": 9172.18
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "bar",
+        "title": "total_transactions by shop_name",
+        "x_axis_key": "shop_name",
+        "y_axis_key": "total_transactions",
+        "label": "total_transactions",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Sales analysis reveals 1 records in the dataset. Leading entity: 'Main Store' with 14 units/transactions generating \u20b99,172.18 in revenue. Total cumulative sales: \u20b99,172.18 (14 total units).",
+      "recommendation": "1. Ensure adequate inventory for 'Main Store' to maintain sales velocity.\n2. Replicate successful merchandising and channel strategies across other segments.\n3. Monitor conversion and velocity trends across all retail outlets.",
+      "original_query": "Which shop had highest sales?",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1791438709.446,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1791438709.447,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Using Custom Retail ML Intent Classifier for query: 'Which shop had highest sales?'"
+        },
+        {
+          "ts": 1791438709.448,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.403) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.448,
+          "level": "INFO",
+          "node": "intent_service.py",
+          "msg": "[IntentService] Custom model result: retail=sales_analysis, workflow=SELECT, conf=0.403, complexity=Simple, clarify=False"
+        },
+        {
+          "ts": 1791438709.58,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.4026749100203636) | Needs Clarification: False"
+        },
+        {
+          "ts": 1791438709.784,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1791438709.786,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.403) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.795,
+          "level": "INFO",
+          "node": "rule_engine.py",
+          "msg": "[SQLGenerator] Intent: sales_analysis -> SQL: SELECT shop_name, city, COUNT(transaction_id) AS total_transactions, SUM(quantit..."
+        },
+        {
+          "ts": 1791438709.796,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "[Custom Retail Model] Generated SQL: SELECT shop_name, city, COUNT(transaction_id) AS total_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY shop_name, city ORDER BY total_revenue DESC;"
+        },
+        {
+          "ts": 1791438709.797,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT shop_name, city, COUNT(transaction_id) AS t..."
+        },
+        {
+          "ts": 1791438709.827,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1791438709.882,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1791438709.883,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT shop_name, city, COUNT(transaction_id) AS total_transactions, SUM(quantity) AS total_units_sold, ROUND(SUM(sales), 2) AS total_revenue, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY shop_name, city ORDER BY total_revenue DESC;"
+        },
+        {
+          "ts": 1791438709.889,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 1 rows."
+        },
+        {
+          "ts": 1791438709.89,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 1"
+        },
+        {
+          "ts": 1791438709.902,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1791438709.918,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1791438709.919,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 1 rows in domain: retail_clothing"
+        },
+        {
+          "ts": 1791438709.92,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.403) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.921,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "[Custom Retail Model] Generated domain insights."
+        },
+        {
+          "ts": 1791438709.922,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1791438709.922,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1791438709.923,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: bar"
+        }
+      ]
+    },
+    {
+      "mission_id": "ops-002",
+      "mission_name": "Inventory SKU Turn Rate & Top Movers",
+      "domain": "operations",
+      "severity": "MEDIUM",
+      "risk_score": 31,
+      "risk_factors": {
+        "affected_entities": {
+          "value": 10,
+          "score": 100,
+          "detail": "10 unique entities"
+        },
+        "dollar_exposure": {
+          "value": 0,
+          "score": 0,
+          "detail": "$0 exposure"
+        },
+        "velocity": {
+          "value": 10,
+          "score": 50,
+          "detail": "10 events"
+        },
+        "pep_involvement": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 PEP accounts"
+        },
+        "kyc_gaps": {
+          "value": 0,
+          "score": 0,
+          "detail": "0 KYC gaps"
+        },
+        "severity_escalation": {
+          "value": "MEDIUM",
+          "score": 25,
+          "detail": "Base: MEDIUM"
+        }
+      },
+      "sql": "SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_id) AS num_transactions, ROUND(AVG(unit_price), 2) AS avg_unit_price, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY product, category ORDER BY total_units_sold DESC LIMIT 15;",
+      "data_count": 10,
+      "results": [
+        {
+          "product": "Inomical Mechanical Keyboard",
+          "category": "General",
+          "total_units_sold": 2,
+          "num_transactions": 2,
+          "avg_unit_price": 69.99,
+          "total_sales": 1539.78,
+          "total_profit": 1539.78
+        },
+        {
+          "product": "Organic Cotton Heavyweight T-Shirt",
+          "category": "General",
+          "total_units_sold": 2,
+          "num_transactions": 2,
+          "avg_unit_price": 24.0,
+          "total_sales": 1320.0,
+          "total_profit": 1320.0
+        },
+        {
+          "product": "Smart Fitness Tracker Watch",
+          "category": "General",
+          "total_units_sold": 2,
+          "num_transactions": 2,
+          "avg_unit_price": 49.99,
+          "total_sales": 499.9,
+          "total_profit": 499.9
+        },
+        {
+          "product": "Wireless Noise-Canceling Headphones",
+          "category": "General",
+          "total_units_sold": 2,
+          "num_transactions": 2,
+          "avg_unit_price": 89.99,
+          "total_sales": 3419.62,
+          "total_profit": 3419.62
+        },
+        {
+          "product": "Ceramic Pour-Over Coffee Dripper",
+          "category": "General",
+          "total_units_sold": 1,
+          "num_transactions": 1,
+          "avg_unit_price": 24.5,
+          "total_sales": 245.0,
+          "total_profit": 245.0
+        },
+        {
+          "product": "Leather Trifold RFID Wallet",
+          "category": "General",
+          "total_units_sold": 1,
+          "num_transactions": 1,
+          "avg_unit_price": 32.0,
+          "total_sales": 480.0,
+          "total_profit": 480.0
+        },
+        {
+          "product": "Merino Wool Everyday Socks (3-Pack)",
+          "category": "General",
+          "total_units_sold": 1,
+          "num_transactions": 1,
+          "avg_unit_price": 18.5,
+          "total_sales": 444.0,
+          "total_profit": 444.0
+        },
+        {
+          "product": "Soy Wax Aromatherapy Candle",
+          "category": "General",
+          "total_units_sold": 1,
+          "num_transactions": 1,
+          "avg_unit_price": 16.0,
+          "total_sales": 288.0,
+          "total_profit": 288.0
+        },
+        {
+          "product": "Stainless Steel Insulated Tumbler",
+          "category": "General",
+          "total_units_sold": 1,
+          "num_transactions": 1,
+          "avg_unit_price": 19.99,
+          "total_sales": 239.88,
+          "total_profit": 239.88
+        },
+        {
+          "product": "Water-Resistant Commuter Backpack",
+          "category": "General",
+          "total_units_sold": 1,
+          "num_transactions": 1,
+          "avg_unit_price": 58.0,
+          "total_sales": 696.0,
+          "total_profit": 696.0
+        }
+      ],
+      "visualization_config": {
+        "chart_type": "line",
+        "title": "total_units_sold by category",
+        "x_axis_key": "category",
+        "y_axis_key": "total_units_sold",
+        "label": "total_units_sold",
+        "description": "Auto-generated fallback chart"
+      },
+      "insight": "Sales analysis reveals 10 records in the dataset. Leading entity: 'Inomical Mechanical Keyboard' with 2 units/transactions generating \u20b91,539.78 in revenue. Total cumulative sales: \u20b99,172.18 (14 total units).",
+      "recommendation": "1. Ensure adequate inventory for 'Inomical Mechanical Keyboard' to maintain sales velocity.\n2. Replicate successful merchandising and channel strategies across other segments.\n3. Monitor conversion and velocity trends across all retail outlets.",
+      "original_query": "Show top selling products",
+      "depth": 0,
+      "parent_mission_id": null,
+      "rationale": "",
+      "timestamp": "LIVE AUDIT",
+      "logs": [
+        {
+          "ts": 1791438709.449,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [classify_intent]"
+        },
+        {
+          "ts": 1791438709.449,
+          "level": "INFO",
+          "node": "INTENT",
+          "msg": "[IntentModule] Using Custom Retail ML Intent Classifier for query: 'Show top selling products'"
+        },
+        {
+          "ts": 1791438709.45,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.900) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.451,
+          "level": "INFO",
+          "node": "intent_service.py",
+          "msg": "[IntentService] Custom model result: retail=sales_analysis, workflow=SELECT, conf=0.900, complexity=Simple, clarify=False"
+        },
+        {
+          "ts": 1791438709.781,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Intent classified: SELECT (conf: 0.9) | Needs Clarification: False"
+        },
+        {
+          "ts": 1791438709.821,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [generate_sql]"
+        },
+        {
+          "ts": 1791438709.823,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.900) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.825,
+          "level": "INFO",
+          "node": "rule_engine.py",
+          "msg": "[SQLGenerator] Intent: sales_analysis -> SQL: SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_i..."
+        },
+        {
+          "ts": 1791438709.825,
+          "level": "INFO",
+          "node": "SQL_GEN",
+          "msg": "[Custom Retail Model] Generated SQL: SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_id) AS num_transactions, ROUND(AVG(unit_price), 2) AS avg_unit_price, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY product, category ORDER BY total_units_sold DESC LIMIT 15;"
+        },
+        {
+          "ts": 1791438709.825,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "SQL Generated: SELECT product, category, SUM(quantity) AS total_u..."
+        },
+        {
+          "ts": 1791438709.879,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [validate_sql]"
+        },
+        {
+          "ts": 1791438709.917,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [execute_query]"
+        },
+        {
+          "ts": 1791438709.917,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Executing SQL: SELECT product, category, SUM(quantity) AS total_units_sold, COUNT(transaction_id) AS num_transactions, ROUND(AVG(unit_price), 2) AS avg_unit_price, ROUND(SUM(sales), 2) AS total_sales, ROUND(SUM(profit), 2) AS total_profit FROM shop_sales GROUP BY product, category ORDER BY total_units_sold DESC LIMIT 15;"
+        },
+        {
+          "ts": 1791438709.918,
+          "level": "INFO",
+          "node": "DB_EXEC",
+          "msg": "Execution complete. Returned 10 rows."
+        },
+        {
+          "ts": 1791438709.918,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Query execution successful. Rows: 10"
+        },
+        {
+          "ts": 1791438709.941,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [analyze_stockout]"
+        },
+        {
+          "ts": 1791438709.944,
+          "level": "INFO",
+          "node": "stockout_analyzer.py",
+          "msg": "Stockout analysis for retail_clothing: 0 at-risk products found"
+        },
+        {
+          "ts": 1791438709.944,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Stockout analysis complete: 0 at-risk products"
+        },
+        {
+          "ts": 1791438709.949,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [insight_recommendation]"
+        },
+        {
+          "ts": 1791438709.949,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "Generating insights for 10 rows in domain: retail_clothing"
+        },
+        {
+          "ts": 1791438709.951,
+          "level": "INFO",
+          "node": "model.py",
+          "msg": "[IntentClassifier] ML prediction: sales_analysis (conf: 0.900) -> workflow: SELECT"
+        },
+        {
+          "ts": 1791438709.951,
+          "level": "INFO",
+          "node": "INSIGHT",
+          "msg": "[Custom Retail Model] Generated domain insights."
+        },
+        {
+          "ts": 1791438709.951,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Insights generated successfully."
+        },
+        {
+          "ts": 1791438709.952,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Node: [recommend_visualization]"
+        },
+        {
+          "ts": 1791438709.952,
+          "level": "INFO",
+          "node": "ORCHESTRATOR",
+          "msg": "Visualization recommended: line"
+        }
+      ]
+    }
+  ],
+  "clusters": [],
+  "narrative": {
+    "executive_summary": "Your platform currently faces a medium to high risk of stockout and inventory management issues, with potential compliance and revenue implications.",
+    "threat_vectors": [
+      {
+        "name": "Stockout Risk & Inventory Safety Baseline",
+        "severity": "MEDIUM",
+        "description": "Identified 10 high-velocity products with 2 units each sold, requiring proactive inventory monitoring, particularly for 'Inomical Mechanical Keyboard'."
+      },
+      {
+        "name": "Inventory SKU Turn Rate & Top Movers",
+        "severity": "MEDIUM",
+        "description": "Leading entity 'Inomical Mechanical Keyboard' with 2 units/transactions generating \u20b91,539.78 in revenue, indicating potential revenue implications."
+      }
+    ],
+    "immediate_actions": [
+      "Conduct a thorough inventory audit to identify and address stockout risks.",
+      "Proactively monitor and adjust inventory levels for high-velocity products."
+    ],
+    "monitoring_recommendations": [
+      "Continuously monitor sales data for high-velocity products and adjust inventory levels accordingly.",
+      "Regularly review and update pricing and margin compliance to ensure optimal revenue generation."
+    ],
+    "overall_risk": 26,
+    "overall_severity": "MEDIUM",
+    "title": "Intelligence Brief - LIVE"
+  }
+}

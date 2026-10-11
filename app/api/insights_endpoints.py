@@ -174,6 +174,43 @@ async def get_today_insights(
             conn.close()
 
 
+@router.patch("/read-all", response_model=dict)
+@router.post("/read-all", response_model=dict)
+@router.post("/acknowledge-all", response_model=dict)
+async def acknowledge_all_insights(
+    db_path: str = Query("retail_clothing.db", description="Database file path"),
+):
+    """Mark all active insights as read and acknowledged."""
+    clean_db_path = _extract_str(db_path, "retail_clothing.db")
+    logger.info(f"Marking all insights as read/acknowledged for db_path: {clean_db_path}")
+    conn = None
+    try:
+        conn = get_db_connection(clean_db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE auto_insights
+            SET is_read = 1,
+                status = 'ACKNOWLEDGED',
+                acknowledged_at = CURRENT_TIMESTAMP
+            WHERE is_read = 0 OR status != 'ACKNOWLEDGED'
+        """)
+        updated_count = cursor.rowcount
+        conn.commit()
+        return {
+            "status": "ok",
+            "updated_count": updated_count,
+            "message": "All insights successfully marked as acknowledged"
+        }
+    except Exception as exc:
+        logger.error(f"Failed to mark all insights as read: {exc}")
+        if conn:
+            conn.rollback()
+        raise HTTPException(status_code=500, detail=str(exc))
+    finally:
+        if conn:
+            conn.close()
+
+
 @router.patch("/{insight_id}/read", response_model=dict)
 @router.patch("/read/{insight_id}", response_model=dict)
 async def mark_insight_as_read(

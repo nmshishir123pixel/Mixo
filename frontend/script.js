@@ -146,10 +146,18 @@ const DOMAIN_REGISTRY = {
 const state = {
     apiUrl: window.location.origin,
     selectedDomain: 'retail_clothing',
+    selectedModelProvider: localStorage.getItem('insightos_chat_model') || 'local',
+    chatgptApiKey: localStorage.getItem('insightos_chatgpt_key') || '',
+    chatgptModel: localStorage.getItem('insightos_chatgpt_model') || 'gpt-4o',
+    chatgptConnected: !!(localStorage.getItem('insightos_chatgpt_key')),
     conversationHistory: [],
     currentResults: null,
+    currentVisConfig: null,
+    currentInsight: null,
+    currentRecommendation: null,
+    currentChartInstance: null,
     isLoading: false,
-    isSentinelMode: true,
+    isSentinelMode: false,
     sentinelScans: 0,
     sentinelDetections: [],
     conversationId: generateId()
@@ -201,6 +209,8 @@ const elements = {
     criticalAlertCount: document.getElementById('critical-alert-count'),
     detectionCount: document.getElementById('detection-count'),
     sentinelGlobalLoading: document.getElementById('sentinel-global-loading'),
+    chatModelSelect: document.getElementById('chat-model-select'),
+    chatgptAuthBtn: document.getElementById('chatgpt-auth-btn'),
     feeds: {
         security: document.getElementById('feed-security'),
         compliance: document.getElementById('feed-compliance'),
@@ -237,14 +247,21 @@ async function sendQuery(query) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 query: query,
-                domain: state.selectedDomain,
+                domain: state.selectedDomain || 'retail_clothing',
                 conversation_id: state.conversationId,
-                conversation_history: state.conversationHistory
+                conversation_history: state.conversationHistory,
+                model_provider: state.selectedModelProvider || 'local',
+                model_name: state.selectedModelProvider === 'chatgpt' ? (state.chatgptModel || 'gpt-4o') : (state.selectedModelProvider === 'nvidia' ? 'nvidia/nemotron-3-super-120b-a12b' : null),
+                api_key: state.selectedModelProvider === 'chatgpt' ? (state.chatgptApiKey || null) : null
             })
         });
 
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = typeof errorData.detail === 'string' 
+                ? errorData.detail 
+                : (errorData.detail?.[0]?.msg || errorData.message || `API error: ${response.status}`);
+            throw new Error(errorMsg);
         }
 
         return await response.json();
@@ -280,9 +297,20 @@ function addMessage(content, type = 'user', options = {}) {
 
     const sender = document.createElement('div');
     sender.className = 'message-sender';
-    sender.innerHTML = type === 'user'
-        ? `<span class="sender-icon">👤</span> <span>You</span>`
-        : `<span class="sender-icon">⚡</span> <span>InsightOS Intelligence</span>`;
+    if (type === 'user') {
+        sender.innerHTML = `<span class="sender-icon">👤</span> <span>You</span>`;
+    } else {
+        const prov = options.model_provider || state.selectedModelProvider || 'local';
+        let badgeHtml = '';
+        if (prov === 'nvidia') {
+            badgeHtml = `<span class="model-source-tag nvidia">🟢 NVIDIA NIM (Nemotron-3)</span>`;
+        } else if (prov === 'chatgpt' || prov === 'openai') {
+            badgeHtml = `<span class="model-source-tag chatgpt">⚡ ChatGPT (${options.model_name || state.chatgptModel || 'gpt-4o'})</span>`;
+        } else {
+            badgeHtml = `<span class="model-source-tag local">🧠 Local Retail Engine</span>`;
+        }
+        sender.innerHTML = `<span class="sender-icon">⚡</span> <span>InsightOS Intelligence</span> ${badgeHtml}`;
+    }
 
     const timestampDiv = document.createElement('span');
     timestampDiv.className = 'message-timestamp';
@@ -345,8 +373,18 @@ function showLoading() {
     loadingDiv.className = 'loading-indicator';
     loadingDiv.id = 'loading-indicator';
 
+    const prov = state.selectedModelProvider;
+    let label = 'Thinking';
+    if (prov === 'nvidia') {
+        label = '⚡ Querying NVIDIA NIM Cloud (Nemotron-3)...';
+    } else if (prov === 'chatgpt' || prov === 'openai') {
+        label = `⚡ Querying ChatGPT (${state.chatgptModel || 'gpt-4o'})...`;
+    } else {
+        label = '🧠 Executing Local Retail Engine...';
+    }
+
     loadingDiv.innerHTML = `
-        <span>Thinking</span>
+        <span>${label}</span>
         <div class="loading-dots">
             <div class="loading-dot"></div>
             <div class="loading-dot"></div>
@@ -488,37 +526,107 @@ function createVizToolbar(visConfig) {
     return toolbar;
 }
 
+function getBestLabelColumn(data, preferredKey) {
+    if (!data || data.length === 0) return null;
+    const columns = Object.keys(data[0]);
+
+    if (preferredKey && columns.includes(preferredKey)) {
+        const uniqueCount = new Set(data.map(r => r[preferredKey])).size;
+        if (uniqueCount > 1 || data.length === 1) {
+            return preferredKey;
+        }
+    }
+
+    const numericCols = columns.filter(col => {
+        return data.every(row => !isNaN(parseFloat(row[col])) && row[col] !== '' && row[col] !== null);
+    });
+    const labelCandidates = columns.filter(col => !numericCols.includes(col));
+    if (labelCandidates.length === 0) return columns[0];
+
+    function scoreCol(col) {
+        const colLower = col.toLowerCase();
+        const uniqueCount = new Set(data.map(r => r[col])).size;
+        if (data.length > 1 && uniqueCount <= 1) return -100;
+
+        let score = uniqueCount * 3;
+        if (['product', 'style_name', 'item_name', 'name'].includes(colLower)) score += 100;
+        else if (['shop_name', 'store_name', 'store', 'shop'].includes(colLower)) score += 90;
+        else if (['city', 'location', 'region'].includes(colLower)) score += 80;
+        else if (['date', 'month', 'year', 'day'].includes(colLower)) score += 70;
+        else if (['category', 'department'].includes(colLower)) score += 40;
+        else if (['payment_method', 'customer_type'].includes(colLower)) score += 35;
+        else if (['sku'].includes(colLower)) score += 30;
+        return score;
+    }
+
+    const sorted = [...labelCandidates].sort((a, b) => scoreCol(b) - scoreCol(a));
+    return sorted[0];
+}
+
+function friendlyMetricName(key) {
+    const map = {
+        'current_stock': 'Current Stock',
+        'reorder_point': 'Safety Threshold',
+        'units_deficit': 'Stock Deficit',
+        'total_units_sold': 'Units Sold',
+        'total_sales': 'Sales Revenue',
+        'total_revenue': 'Total Revenue',
+        'total_profit': 'Net Profit',
+        'sales': 'Sales',
+        'profit': 'Profit',
+        'quantity': 'Quantity',
+        'recommended_reorder_qty': 'Recommended Reorder',
+        'recommended_restock_units': 'Restock Units'
+    };
+    if (map[key]) return map[key];
+    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function renderVisualization(type) {
     const container = document.getElementById('viz-container');
+    if (!container) return;
     container.innerHTML = '';
 
     if (type === 'table') {
+        if (state.currentChartInstance) {
+            try { state.currentChartInstance.destroy(); } catch (e) {}
+            state.currentChartInstance = null;
+        }
         const table = createDataTable(state.currentResults);
         container.appendChild(table);
     } else {
-        // Create config override for the selected type
-        let config = state.currentVisConfig;
+        const bestLabel = getBestLabelColumn(state.currentResults, state.currentVisConfig?.x_axis_key);
+        const columns = Object.keys(state.currentResults[0]);
+        const numericColumns = columns.filter(col => {
+            return state.currentResults.every(row => !isNaN(parseFloat(row[col])) && row[col] !== '' && row[col] !== null);
+        });
 
-        // If switching to a type different from recommendation, we need to adapt
-        if (!config || config.chart_type !== type) {
-            // Heuristic adaptation
-            const columns = Object.keys(state.currentResults[0]);
-            const numericColumns = columns.filter(col => {
-                return state.currentResults.every(row => !isNaN(parseFloat(row[col])));
-            });
-            const labelColumn = columns.find(col => !numericColumns.includes(col)) || columns[0];
-
-            config = {
-                chart_type: type,
-                x_axis_key: config?.x_axis_key || labelColumn,
-                y_axis_key: config?.y_axis_key || numericColumns[0],
-                title: config?.title || 'Data Visualization'
-            };
+        let yKeys = state.currentVisConfig?.y_axis_key;
+        if (!yKeys) {
+            yKeys = numericColumns.slice(0, 2);
         }
 
-        const chart = createChart(state.currentResults, config);
+        if (type === 'pie' || type === 'doughnut') {
+            if (Array.isArray(yKeys)) {
+                yKeys = yKeys[0];
+            }
+        }
+
+        const adaptedConfig = {
+            chart_type: type,
+            x_axis_key: bestLabel || columns[0],
+            y_axis_key: yKeys,
+            title: state.currentVisConfig?.title || 'Data Visualization'
+        };
+
+        const chart = createChart(state.currentResults, adaptedConfig);
         if (chart) {
             container.appendChild(chart);
+            setTimeout(() => {
+                if (state.currentChartInstance) {
+                    try { state.currentChartInstance.resize(); } catch (e) {}
+                }
+            }, 50);
         } else {
             container.innerHTML = '<div class="empty-state"><p>Cannot generate this chart with current data</p></div>';
         }
@@ -539,7 +647,7 @@ function createDataTable(data) {
     const columns = Object.keys(data[0]);
     columns.forEach(col => {
         const th = document.createElement('th');
-        th.textContent = col;
+        th.textContent = friendlyMetricName(col);
         headerRow.appendChild(th);
     });
 
@@ -552,7 +660,13 @@ function createDataTable(data) {
         const tr = document.createElement('tr');
         columns.forEach(col => {
             const td = document.createElement('td');
-            td.textContent = row[col] ?? 'N/A';
+            const val = row[col];
+            if (typeof val === 'number') {
+                const isMoney = ['sales', 'revenue', 'profit', 'cost'].some(k => col.toLowerCase().includes(k));
+                td.textContent = isMoney ? '₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : val.toLocaleString();
+            } else {
+                td.textContent = val ?? 'N/A';
+            }
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
@@ -565,105 +679,156 @@ function createDataTable(data) {
 }
 
 function createChart(data, config) {
-    if (data.length === 0) return null;
-
-    // If explicit config says "table", don't show chart
+    if (!data || data.length === 0) return null;
     if (config && config.chart_type === 'table') return null;
 
-    let chartType, xKey, yKeys, title;
+    const columns = Object.keys(data[0]);
+    const xKey = getBestLabelColumn(data, config?.x_axis_key) || columns[0];
+    let chartType = config?.chart_type || (data.length <= 10 ? 'bar' : 'line');
+    let title = config?.title || 'Data Visualization';
 
-    if (config) {
-        // Use intelligent configuration from backend
-        chartType = config.chart_type;
-        xKey = config.x_axis_key;
-
-        // Handle Y keys (could be string or array)
-        if (Array.isArray(config.y_axis_key)) {
-            yKeys = config.y_axis_key;
-        } else {
-            yKeys = [config.y_axis_key];
-        }
-
-        title = config.title;
-
-        // Verify keys exist in data
-        if (!data[0].hasOwnProperty(xKey)) {
-            console.warn(`Chart X-axis key '${xKey}' not found in data. Falling back.`);
-            config = null; // Fallback to auto-detection
-        }
+    let yKeys = config?.y_axis_key;
+    if (!yKeys) {
+        const numericColumns = columns.filter(col => {
+            return data.every(row => !isNaN(parseFloat(row[col])) && row[col] !== '' && row[col] !== null);
+        });
+        yKeys = numericColumns.slice(0, 2);
+    }
+    if (!Array.isArray(yKeys)) {
+        yKeys = [yKeys];
+    }
+    yKeys = yKeys.filter(k => k && data[0].hasOwnProperty(k));
+    if (yKeys.length === 0) {
+        const firstNum = columns.find(col => data.every(r => !isNaN(parseFloat(r[col]))));
+        if (firstNum) yKeys = [firstNum];
+        else return null;
     }
 
-    // Fallback Auto-Detection (if no config or invalid config)
-    if (!config) {
-        const columns = Object.keys(data[0]);
-        const numericColumns = columns.filter(col => {
-            return data.every(row => !isNaN(parseFloat(row[col])));
-        });
-
-        const labelColumn = columns.find(col => !numericColumns.includes(col)) || columns[0];
-
-        if (numericColumns.length === 0 || data.length > 50) {
-            return null;
-        }
-
-        chartType = data.length <= 10 ? 'bar' : 'line';
-        xKey = labelColumn;
-        yKeys = numericColumns.slice(0, 3); // Take top 3 numeric cols
-        title = 'Data Visualization';
+    if (chartType === 'pie' || chartType === 'doughnut') {
+        yKeys = [yKeys[0]];
     }
 
     const container = document.createElement('div');
     container.className = 'chart-container';
 
+    // Title
     const titleDiv = document.createElement('div');
     titleDiv.className = 'chart-title';
-    titleDiv.textContent = title || 'Data Visualization';
+    titleDiv.textContent = title;
     container.appendChild(titleDiv);
+
+    // KPI Summary Ribbon for immediate clarity to any operator
+    const kpiRibbon = document.createElement('div');
+    kpiRibbon.className = 'chart-kpi-ribbon';
+
+    const hasStockData = data[0].hasOwnProperty('current_stock') && data[0].hasOwnProperty('reorder_point');
+    if (hasStockData) {
+        const atRiskCount = data.filter(r => (parseFloat(r.current_stock) || 0) <= (parseFloat(r.reorder_point) || 0)).length;
+        const lowestItem = [...data].sort((a, b) => (parseFloat(a.current_stock) || 0) - (parseFloat(b.current_stock) || 0))[0];
+        const totalDeficit = data.reduce((sum, r) => sum + Math.max(0, (parseFloat(r.reorder_point) || 0) - (parseFloat(r.current_stock) || 0)), 0);
+
+        kpiRibbon.innerHTML = `
+            <div class="kpi-pill ${atRiskCount > 0 ? 'danger' : 'success'}">
+                <span class="kpi-pill-title">At-Risk Items</span>
+                <span class="kpi-pill-value">${atRiskCount > 0 ? '⚠️ ' + atRiskCount + ' Items' : '✅ Healthy'}</span>
+            </div>
+            <div class="kpi-pill primary">
+                <span class="kpi-pill-title">Lowest Stock</span>
+                <span class="kpi-pill-value" title="${lowestItem ? String(lowestItem[xKey]) : ''}">${lowestItem ? (lowestItem.current_stock + ' units (' + String(lowestItem[xKey]).slice(0, 14) + ')') : 'N/A'}</span>
+            </div>
+            <div class="kpi-pill ${totalDeficit > 0 ? 'danger' : 'success'}">
+                <span class="kpi-pill-title">Restock Needed</span>
+                <span class="kpi-pill-value">${totalDeficit} Units</span>
+            </div>
+        `;
+    } else {
+        const primaryKey = yKeys[0];
+        const isMoney = ['sales', 'revenue', 'profit', 'cost'].some(k => primaryKey.toLowerCase().includes(k));
+        const totalVal = data.reduce((sum, r) => sum + (parseFloat(r[primaryKey]) || 0), 0);
+        const topItem = [...data].sort((a, b) => (parseFloat(b[primaryKey]) || 0) - (parseFloat(a[primaryKey]) || 0))[0];
+
+        const formattedTotal = isMoney ? `₹${totalVal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : `${totalVal.toLocaleString()} units`;
+        const topItemName = topItem ? String(topItem[xKey] || 'N/A') : 'N/A';
+
+        kpiRibbon.innerHTML = `
+            <div class="kpi-pill primary">
+                <span class="kpi-pill-title">Total ${friendlyMetricName(primaryKey)}</span>
+                <span class="kpi-pill-value">${formattedTotal}</span>
+            </div>
+            <div class="kpi-pill success">
+                <span class="kpi-pill-title">Records Analyzed</span>
+                <span class="kpi-pill-value">${data.length} Items</span>
+            </div>
+            <div class="kpi-pill">
+                <span class="kpi-pill-title">Top Contributor</span>
+                <span class="kpi-pill-value" title="${topItemName}">${topItemName.length > 15 ? topItemName.slice(0, 13) + '...' : topItemName}</span>
+            </div>
+        `;
+    }
+    container.appendChild(kpiRibbon);
 
     const canvas = document.createElement('canvas');
     canvas.className = 'chart-canvas';
     container.appendChild(canvas);
 
-    // Prepare chart data
-    const labels = data.map(row => row[xKey]);
+    const labels = data.map(row => String(row[xKey] ?? ''));
 
-    const datasets = yKeys.map((key, index) => {
-        const colors = [
-            { bg: 'rgba(255, 107, 0, 0.65)', border: '#FF6B00' },
-            { bg: 'rgba(255, 140, 0, 0.60)', border: '#FF8C00' },
-            { bg: 'rgba(0, 200, 83, 0.60)', border: '#00C853' },
-            { bg: 'rgba(41, 121, 255, 0.60)', border: '#2979FF' },
-            { bg: 'rgba(255, 171, 0, 0.60)', border: '#FFAB00' }
-        ];
+    const sliceColors = [
+        '#FF6B00', '#2979FF', '#00E676', '#FFD600', '#E040FB', 
+        '#00E5FF', '#FF5252', '#7C4DFF', '#76FF03', '#FF6E40', 
+        '#40C4FF', '#FF4081'
+    ];
 
-        // Cycle colors if more datasets than colors
-        const color = colors[index % colors.length];
-
-        return {
-            label: key,
-            data: data.map(row => parseFloat(row[key]) || 0),
-            backgroundColor: color.bg,
-            borderColor: color.border,
-            borderWidth: 2,
-            tension: 0.2,
-            fill: chartType === 'area' // Fill if it's an area chart
-        };
-    });
-
-    // Map backend chart types to Chart.js types
     const chartJsMap = {
         'bar': 'bar',
         'line': 'line',
         'pie': 'pie',
         'doughnut': 'doughnut',
         'scatter': 'scatter',
-        'area': 'line' // Area is line with fill
+        'area': 'line'
     };
-
     const finalType = chartJsMap[chartType] || 'bar';
 
-    // Create chart
-    new Chart(canvas, {
+    let datasets = [];
+
+    if (finalType === 'pie' || finalType === 'doughnut') {
+        const key = yKeys[0];
+        datasets = [{
+            label: friendlyMetricName(key),
+            data: data.map(row => parseFloat(row[key]) || 0),
+            backgroundColor: labels.map((_, i) => sliceColors[i % sliceColors.length]),
+            borderColor: '#121212',
+            borderWidth: 2
+        }];
+    } else {
+        const seriesColors = [
+            { bg: 'rgba(255, 107, 0, 0.75)', border: '#FF6B00' },
+            { bg: 'rgba(0, 229, 255, 0.75)', border: '#00E5FF' },
+            { bg: 'rgba(0, 230, 118, 0.75)', border: '#00E676' },
+            { bg: 'rgba(255, 214, 0, 0.75)', border: '#FFD600' }
+        ];
+
+        datasets = yKeys.map((key, index) => {
+            const color = seriesColors[index % seriesColors.length];
+            return {
+                label: friendlyMetricName(key),
+                data: data.map(row => parseFloat(row[key]) || 0),
+                backgroundColor: color.bg,
+                borderColor: color.border,
+                borderWidth: 2,
+                borderRadius: 4,
+                tension: 0.25,
+                fill: chartType === 'area'
+            };
+        });
+    }
+
+    if (state.currentChartInstance) {
+        try { state.currentChartInstance.destroy(); } catch (e) {}
+        state.currentChartInstance = null;
+    }
+
+    state.currentChartInstance = new Chart(canvas, {
         type: finalType,
         data: {
             labels: labels,
@@ -674,24 +839,43 @@ function createChart(data, config) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: yKeys.length > 0,
+                    display: finalType === 'pie' || finalType === 'doughnut' ? labels.length <= 8 : yKeys.length > 0,
                     position: 'top',
                     labels: {
                         color: '#F5F5F5',
-                        font: { family: 'Inter', size: 12, weight: '600' }
+                        boxWidth: 12,
+                        padding: 12,
+                        font: { family: 'Inter', size: 11, weight: '600' }
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#0A0A0A',
+                    backgroundColor: '#121212',
                     titleColor: '#F5F5F5',
-                    bodyColor: '#A3A3A3',
+                    bodyColor: '#D4D4D8',
                     borderColor: 'rgba(255, 107, 0, 0.4)',
                     borderWidth: 1,
-                    cornerRadius: 2,
+                    cornerRadius: 4,
                     padding: 10,
                     displayColors: true,
-                    titleFont: { family: 'JetBrains Mono', size: 12, weight: 'bold' },
-                    bodyFont: { family: 'JetBrains Mono', size: 11 }
+                    titleFont: { family: 'Inter', size: 12, weight: 'bold' },
+                    bodyFont: { family: 'JetBrains Mono', size: 11 },
+                    callbacks: {
+                        label: function(context) {
+                            const val = context.raw || 0;
+                            const keyName = yKeys[context.datasetIndex || 0] || '';
+                            const isMoney = ['sales', 'revenue', 'profit', 'cost'].some(k => keyName.toLowerCase().includes(k));
+                            let formattedVal = isMoney 
+                                ? '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                : Number(val).toLocaleString() + ' units';
+
+                            if (finalType === 'pie' || finalType === 'doughnut') {
+                                const total = context.dataset.data.reduce((a, b) => a + (parseFloat(b) || 0), 0);
+                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) + '%' : '0%';
+                                return ` ${context.label}: ${formattedVal} (${pct})`;
+                            }
+                            return ` ${context.dataset.label}: ${formattedVal}`;
+                        }
+                    }
                 }
             },
             scales: {
@@ -699,7 +883,11 @@ function createChart(data, config) {
                     grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: {
                         color: '#A0A0A0',
-                        font: { family: 'JetBrains Mono', size: 11 }
+                        font: { family: 'Inter', size: 11 },
+                        callback: function(val, index) {
+                            const label = labels[index] || '';
+                            return label.length > 16 ? label.slice(0, 14) + '...' : label;
+                        }
                     },
                     display: !['pie', 'doughnut'].includes(finalType)
                 },
@@ -707,7 +895,11 @@ function createChart(data, config) {
                     grid: { color: 'rgba(255, 255, 255, 0.05)' },
                     ticks: {
                         color: '#A0A0A0',
-                        font: { family: 'JetBrains Mono', size: 11 }
+                        font: { family: 'JetBrains Mono', size: 11 },
+                        callback: function(val) {
+                            if (val >= 1000) return (val / 1000).toFixed(1) + 'k';
+                            return val;
+                        }
                     },
                     display: !['pie', 'doughnut'].includes(finalType)
                 }
@@ -735,7 +927,10 @@ async function sendQuery(query) {
             query: query,
             domain: state.selectedDomain || 'retail_clothing',
             conversation_id: state.conversationId,
-            conversation_history: state.conversationHistory
+            conversation_history: state.conversationHistory,
+            model_provider: state.selectedModelProvider || 'local',
+            model_name: state.selectedModelProvider === 'chatgpt' ? (state.chatgptModel || 'gpt-4o') : (state.selectedModelProvider === 'nvidia' ? 'nvidia/nemotron-3-super-120b-a12b' : null),
+            api_key: state.selectedModelProvider === 'chatgpt' ? (state.chatgptApiKey || null) : null
         })
     });
 
@@ -810,7 +1005,11 @@ async function handleSendMessage() {
                 }
             }
 
-            addMessage(aiReply, 'assistant', { sql: response.sql });
+            addMessage(aiReply, 'assistant', {
+                sql: response.sql,
+                model_provider: response.metadata?.model_provider || state.selectedModelProvider,
+                model_name: response.metadata?.model_name || state.chatgptModel
+            });
 
             state.conversationHistory.push({
                 role: 'assistant',
@@ -1093,24 +1292,14 @@ function toggleExportDropdown() {
 // ===========================
 // Sentinel Functions
 // ===========================
-async function toggleSentinelMode() {
-    state.isSentinelMode = !state.isSentinelMode;
-
+function toggleSentinelMode() {
     if (state.isSentinelMode) {
-        elements.sentinelBtn.classList.add('active');
-        elements.chatContainer.classList.add('hidden');
-        elements.resultsPanel.classList.add('hidden');
-        elements.sentinelDashboard.classList.remove('hidden');
-        elements.sentinelBtn.innerHTML = '<span class="icon">💬</span> QUERY CHAT';
-        runSentinelScan();
+        switchToTab('chat');
     } else {
-        elements.sentinelBtn.classList.remove('active');
-        elements.chatContainer.classList.remove('hidden');
-        elements.resultsPanel.classList.remove('hidden');
-        elements.sentinelDashboard.classList.add('hidden');
-        elements.sentinelBtn.innerHTML = '<span class="pulse-ring"></span><span class="icon">🛰️</span> SENTINEL MODE';
+        switchToTab('sentinel');
     }
 }
+window.toggleSentinelMode = toggleSentinelMode;
 
 async function runSentinelScan() {
     elements.sentinelGlobalLoading.classList.remove('hidden');
@@ -1386,15 +1575,20 @@ async function initialize() {
     // Check API connection
     await checkApiConnection();
 
+    // Default to Query Assistant view (50/50 equal dual-pane layout)
+    switchToTab('chat');
+
     // Focus input
     if (elements.queryInput) {
         elements.queryInput.focus();
     }
 
-    if (state.isSentinelMode) {
-        elements.sentinelBtn.innerHTML = '<span class="icon">💬</span> QUERY CHAT';
-        runSentinelScan();
+    // Model Selection setup
+    const modelDropdown = document.getElementById('chat-model-select');
+    if (modelDropdown) {
+        modelDropdown.value = state.selectedModelProvider || 'local';
     }
+    updateChatGPTAuthButton();
 
     console.log('✅ Initialization complete with Multi-Domain capabilities');
 }
@@ -1415,41 +1609,82 @@ function switchToTab(tabName) {
     const project2Dashboard = document.getElementById('project2-dashboard');
     const resultsPanel = document.getElementById('results-panel');
     const insightsDashboard = document.getElementById('insights-dashboard');
+    const mainContent = document.querySelector('.main-content');
 
     const tabChat = document.getElementById('tab-chat');
     const tabSentinel = document.getElementById('tab-sentinel');
     const tabProject2 = document.getElementById('tab-project2');
     const tabInsights = document.getElementById('tab-insights');
+    const sentinelBtn = elements.sentinelBtn || document.getElementById('sentinel-btn');
 
-    // Hide all main containers
+    // Hide all main containers cleanly
     if (chatContainer) chatContainer.classList.add('hidden');
     if (sentinelDashboard) sentinelDashboard.classList.add('hidden');
-    if (project2Dashboard) project2Dashboard.classList.add('hidden');
+    if (project2Dashboard) {
+        project2Dashboard.classList.add('hidden');
+        project2Dashboard.style.display = 'none';
+    }
     if (resultsPanel) resultsPanel.classList.add('hidden');
-    if (insightsDashboard) insightsDashboard.classList.add('hidden');
+    if (insightsDashboard) {
+        insightsDashboard.classList.add('hidden');
+        insightsDashboard.style.display = 'none';
+    }
 
     // Reset active tab styles
     [tabChat, tabSentinel, tabProject2, tabInsights].forEach(t => { if (t) t.classList.remove('active'); });
 
     if (tabName === 'chat') {
+        state.isSentinelMode = false;
+        if (mainContent) mainContent.classList.remove('single-view');
         if (chatContainer) chatContainer.classList.remove('hidden');
+        if (resultsPanel) resultsPanel.classList.remove('hidden');
         if (tabChat) tabChat.classList.add('active');
+        if (sentinelBtn) {
+            sentinelBtn.classList.remove('active');
+            sentinelBtn.innerHTML = '<span class="pulse-ring"></span><span class="icon">🛰️</span> SENTINEL MONITOR';
+        }
+        // Force chart resize on layout transition so graphs are crisp and properly visible
+        setTimeout(() => {
+            if (state.currentChartInstance) {
+                try { state.currentChartInstance.resize(); } catch (e) {}
+            }
+            window.dispatchEvent(new Event('resize'));
+        }, 60);
     } else if (tabName === 'sentinel') {
+        state.isSentinelMode = true;
+        if (mainContent) mainContent.classList.add('single-view');
         if (sentinelDashboard) sentinelDashboard.classList.remove('hidden');
         if (tabSentinel) tabSentinel.classList.add('active');
+        if (sentinelBtn) {
+            sentinelBtn.classList.add('active');
+            sentinelBtn.innerHTML = '<span class="icon">💬</span> QUERY CHAT';
+        }
+        runSentinelScan();
     } else if (tabName === 'project2') {
+        state.isSentinelMode = false;
+        if (mainContent) mainContent.classList.add('single-view');
         if (project2Dashboard) {
             project2Dashboard.classList.remove('hidden');
             project2Dashboard.style.display = 'block';
             project2Dashboard.scrollIntoView({ behavior: 'smooth' });
         }
         if (tabProject2) tabProject2.classList.add('active');
+        if (sentinelBtn) {
+            sentinelBtn.classList.remove('active');
+            sentinelBtn.innerHTML = '<span class="pulse-ring"></span><span class="icon">🛰️</span> SENTINEL MONITOR';
+        }
     } else if (tabName === 'insights') {
+        state.isSentinelMode = false;
+        if (mainContent) mainContent.classList.add('single-view');
         if (insightsDashboard) {
             insightsDashboard.classList.remove('hidden');
             insightsDashboard.style.display = 'block';
         }
         if (tabInsights) tabInsights.classList.add('active');
+        if (sentinelBtn) {
+            sentinelBtn.classList.remove('active');
+            sentinelBtn.innerHTML = '<span class="pulse-ring"></span><span class="icon">🛰️</span> SENTINEL MONITOR';
+        }
         // Auto-fetch insights on tab switch
         fetchAutoInsights();
     }
@@ -1495,6 +1730,7 @@ async function fetchAutoInsights() {
         }
 
         updateRuleCounters(_autoInsightsData);
+        updateFilterCounts(_autoInsightsData);
         renderInsightCards(_autoInsightsData, findingsContainer);
 
         if (lastUpdate) {
@@ -1516,6 +1752,48 @@ async function fetchAutoInsights() {
     }
 }
 window.fetchAutoInsights = fetchAutoInsights;
+
+let _currentInsightsFilter = 'all';
+
+function filterInsights(filterType) {
+    _currentInsightsFilter = filterType || 'all';
+    document.querySelectorAll('.insights-filter-btn').forEach(btn => {
+        if (btn.dataset.filter === _currentInsightsFilter) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    const findingsContainer = document.getElementById('insights-findings');
+    renderInsightCards(_autoInsightsData, findingsContainer);
+}
+window.filterInsights = filterInsights;
+
+function updateFilterCounts(insights) {
+    const safeList = Array.isArray(insights) ? insights : [];
+    const total = safeList.length;
+    const unread = safeList.filter(i => !i.is_read).length;
+    const ack = total - unread;
+
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setVal('filter-all-count', total);
+    setVal('filter-unread-count', unread);
+    setVal('filter-ack-count', ack);
+
+    const ackAllBtn = document.getElementById('acknowledge-all-btn');
+    if (ackAllBtn) {
+        if (unread === 0 && total > 0) {
+            ackAllBtn.disabled = true;
+            ackAllBtn.innerHTML = '<span>✓ All Acknowledged</span>';
+            ackAllBtn.style.opacity = '0.6';
+        } else {
+            ackAllBtn.disabled = false;
+            ackAllBtn.innerHTML = '<span>✓ Mark All Acknowledged</span>';
+            ackAllBtn.style.opacity = '1';
+        }
+    }
+}
+window.updateFilterCounts = updateFilterCounts;
 
 function updateRuleCounters(insights) {
     const safeList = Array.isArray(insights) ? insights : [];
@@ -1550,12 +1828,46 @@ function renderInsightCards(insights, container) {
         return;
     }
 
+    let displayed = insights;
+    if (_currentInsightsFilter === 'unread') {
+        displayed = insights.filter(i => !i.is_read);
+    } else if (_currentInsightsFilter === 'acknowledged') {
+        displayed = insights.filter(i => i.is_read);
+    }
+
+    if (displayed.length === 0) {
+        if (_currentInsightsFilter === 'unread') {
+            container.innerHTML = `
+                <div class="insights-empty-state">
+                    <div class="empty-icon">🎉</div>
+                    <p style="font-weight: 600; font-size: 1.05rem; color: #22c55e;">All caught up! Zero unread alerts.</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">All insights have been acknowledged by the operations team.</p>
+                    <button class="action-btn" onclick="filterInsights('all')" style="margin-top: 1rem;">View All Insights</button>
+                </div>`;
+        } else if (_currentInsightsFilter === 'acknowledged') {
+            container.innerHTML = `
+                <div class="insights-empty-state">
+                    <div class="empty-icon">📋</div>
+                    <p>No acknowledged insights yet.</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">Click "✓ Acknowledge" on any insight card to mark it as reviewed.</p>
+                </div>`;
+        } else {
+            container.innerHTML = `
+                <div class="insights-empty-state">
+                    <div class="empty-icon">✅</div>
+                    <p>No insights found.</p>
+                </div>`;
+        }
+        return;
+    }
+
     let html = '';
-    insights.forEach((insight, idx) => {
+    displayed.forEach((insight, idx) => {
         const sev = (insight.severity || 'medium').toLowerCase();
         const sevClass = `severity-${sev}`;
         const sevBadgeClass = `sev-${sev}`;
-        const readClass = insight.is_read ? 'is-read' : '';
+        const isRead = Boolean(insight.is_read);
+        const readClass = isRead ? 'is-read' : '';
         const insightId = insight.insight_id || insight.id;
         const type = insight.type || insight.insight_type || '';
         const typeIcon = type.includes('stockout') ? '🛡️' :
@@ -1563,7 +1875,7 @@ function renderInsightCards(insights, container) {
                          type.includes('supplier') ? '⚠️' :
                          type.includes('critical') ? '🔴' : '📊';
 
-        const showPOButton = insight.suggested_reorder_qty > 0 || (insight.recommended_action && insight.recommended_action.includes('Reorder'));
+        const showPOButton = !isRead && (insight.suggested_reorder_qty > 0 || (insight.recommended_action && insight.recommended_action.includes('Reorder')));
         const pId = insight.product_id || insight.sku || '';
         const pName = (insight.product_name || insight.title || '').replace(/'/g, "\\'");
         const reorderQty = insight.suggested_reorder_qty || 15;
@@ -1579,20 +1891,33 @@ function renderInsightCards(insights, container) {
                 <div><strong>Recommended Action:</strong> ${insight.recommended_action}</div>
             </div>` : '';
 
+        const statusChipHtml = isRead
+            ? `<span class="finding-status-chip ack-chip">✓ ACKNOWLEDGED</span>`
+            : `<span class="finding-status-chip pending-chip">ACTION REQUIRED</span>`;
+
+        const ackButtonHtml = isRead
+            ? `<button class="mark-read-btn acknowledged" disabled>✓ Acknowledged</button>`
+            : `<button class="mark-read-btn" id="ack-btn-${insightId}" onclick="markInsightRead('${insightId}')">✓ Acknowledge</button>`;
+
         html += `
             <div class="insight-finding-card ${sevClass} ${readClass}" id="insight-card-${insightId}" style="animation-delay: ${idx * 0.08}s;">
-                <div class="finding-header">
-                    <span class="finding-title">${typeIcon} ${insight.title || 'Insight'}</span>
-                    <span class="finding-severity ${sevBadgeClass}">${sev}</span>
+                <div class="finding-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span class="finding-title" style="font-weight: 600;">${typeIcon} ${insight.title || 'Insight'}</span>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        ${statusChipHtml}
+                        <span class="finding-severity ${sevBadgeClass}">${sev}</span>
+                    </div>
                 </div>
                 <div class="finding-description">${insight.description || ''}</div>
                 ${recActionHtml}
-                <div class="finding-meta">
-                    <span class="finding-product">${insight.product_name ? 'Product: ' + insight.product_name : (insight.product_id ? 'SKU: ' + insight.product_id : '')}</span>
-                    <span class="finding-time">${insight.created_at || ''}</span>
+                <div class="finding-meta" style="margin-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <span class="finding-product" style="font-weight: 500;">${insight.product_name ? 'Product: ' + insight.product_name : (insight.product_id ? 'SKU: ' + insight.product_id : '')}</span>
+                        <span class="finding-time" style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem;">${insight.created_at || ''}</span>
+                    </div>
                     <div style="display: flex; gap: 0.4rem; align-items: center;">
                         ${poButtonHtml}
-                        <button class="mark-read-btn" onclick="markInsightRead('${insightId}')">✓ Acknowledge</button>
+                        ${ackButtonHtml}
                     </div>
                 </div>
             </div>`;
@@ -1647,36 +1972,117 @@ async function createDraftPOFromInsight(insightId, productId, productName, quant
 window.createDraftPOFromInsight = createDraftPOFromInsight;
 
 async function markInsightRead(insightId) {
+    const btn = document.getElementById(`ack-btn-${insightId}`);
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Saving...';
+    }
+
     const host = window.location.hostname || 'localhost';
     const baseUrl = `${window.location.protocol}//${host}:8080`;
 
     try {
-        await fetch(`${baseUrl}/api/v1/insights/read/${insightId}`, { method: 'PATCH' });
+        let res = await fetch(`${baseUrl}/api/v1/insights/read/${insightId}`, { method: 'PATCH' });
+        if (!res.ok) {
+            res = await fetch(`${baseUrl}/insights/read/${insightId}`, { method: 'PATCH' });
+        }
+
+        // Update in-memory state
+        const target = _autoInsightsData.find(i => String(i.insight_id || i.id) === String(insightId));
+        if (target) {
+            target.is_read = true;
+        }
+
+        // Update UI card
         const card = document.getElementById(`insight-card-${insightId}`);
         if (card) {
             card.classList.add('is-read');
+            const chip = card.querySelector('.finding-status-chip');
+            if (chip) {
+                chip.className = 'finding-status-chip ack-chip';
+                chip.textContent = '✓ ACKNOWLEDGED';
+            }
         }
+
+        if (btn) {
+            btn.className = 'mark-read-btn acknowledged';
+            btn.textContent = '✓ Acknowledged';
+            btn.disabled = true;
+        }
+
+        updateFilterCounts(_autoInsightsData);
+
+        // If viewing unread filter, remove card after brief visual confirmation
+        if (_currentInsightsFilter === 'unread') {
+            setTimeout(() => {
+                const findingsContainer = document.getElementById('insights-findings');
+                renderInsightCards(_autoInsightsData, findingsContainer);
+            }, 300);
+        }
+
         console.log(`📊 Insight ${insightId} marked as read`);
     } catch (err) {
         console.error(`Failed to mark insight ${insightId} as read:`, err);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '✓ Acknowledge';
+        }
     }
 }
 window.markInsightRead = markInsightRead;
 
 async function acknowledgeAllInsights() {
+    const ackAllBtn = document.getElementById('acknowledge-all-btn');
+    if (ackAllBtn) {
+        ackAllBtn.disabled = true;
+        ackAllBtn.innerHTML = '<span>⏳ Acknowledging All...</span>';
+    }
+
     const host = window.location.hostname || 'localhost';
     const baseUrl = `${window.location.protocol}//${host}:8080`;
 
-    for (const insight of _autoInsightsData) {
-        const id = insight.insight_id || insight.id;
-        if (!insight.is_read) {
-            try {
-                await fetch(`${baseUrl}/api/v1/insights/read/${id}`, { method: 'PATCH' });
-            } catch (e) { /* continue */ }
+    try {
+        // Fast bulk endpoint
+        let bulkOk = false;
+        try {
+            const bulkRes = await fetch(`${baseUrl}/api/v1/insights/read-all`, { method: 'PATCH' });
+            if (bulkRes.ok) bulkOk = true;
+        } catch (e) {
+            bulkOk = false;
+        }
+
+        if (!bulkOk) {
+            // Fallback: loop through unread items
+            for (const insight of _autoInsightsData) {
+                const id = insight.insight_id || insight.id;
+                if (!insight.is_read) {
+                    try {
+                        await fetch(`${baseUrl}/api/v1/insights/read/${id}`, { method: 'PATCH' });
+                    } catch (e) { /* continue */ }
+                }
+            }
+        }
+
+        // Update local state
+        _autoInsightsData.forEach(i => { i.is_read = true; });
+
+        // Re-render UI
+        const findingsContainer = document.getElementById('insights-findings');
+        renderInsightCards(_autoInsightsData, findingsContainer);
+        updateFilterCounts(_autoInsightsData);
+
+        if (ackAllBtn) {
+            ackAllBtn.disabled = true;
+            ackAllBtn.innerHTML = '<span>✓ All Acknowledged</span>';
+            ackAllBtn.style.opacity = '0.6';
+        }
+    } catch (err) {
+        console.error('Failed to acknowledge all insights:', err);
+        if (ackAllBtn) {
+            ackAllBtn.disabled = false;
+            ackAllBtn.innerHTML = '<span>✓ Mark All Acknowledged</span>';
         }
     }
-    // Refresh
-    fetchAutoInsights();
 }
 window.acknowledgeAllInsights = acknowledgeAllInsights;
 
@@ -2286,6 +2692,207 @@ if (document.readyState === 'loading') {
 } else {
     loadEmailConfig();
 }
+
+// ========================================================
+// Model Selection & OpenClaw ChatGPT Authentication
+// ========================================================
+
+function updateChatGPTAuthButton() {
+    const btn = document.getElementById('chatgpt-auth-btn');
+    const txt = document.getElementById('chatgpt-auth-status-text');
+    if (!btn || !txt) return;
+    
+    if (state.chatgptConnected && state.chatgptApiKey) {
+        btn.classList.add('connected');
+        txt.textContent = `ChatGPT (${state.chatgptModel || 'gpt-4o'})`;
+        btn.title = `Connected to OpenAI (${state.chatgptModel || 'gpt-4o'}). Click to manage.`;
+    } else {
+        btn.classList.remove('connected');
+        txt.textContent = 'Connect ChatGPT';
+        btn.title = 'Configure ChatGPT / OpenAI Sign-In';
+    }
+}
+window.updateChatGPTAuthButton = updateChatGPTAuthButton;
+
+function handleModelChange(provider) {
+    state.selectedModelProvider = provider;
+    localStorage.setItem('insightos_chat_model', provider);
+    console.log(`🤖 Switched Query Model to: ${provider}`);
+    
+    if (provider === 'chatgpt' && !state.chatgptApiKey) {
+        openChatGPTAuthModal();
+    }
+}
+window.handleModelChange = handleModelChange;
+
+function openChatGPTAuthModal() {
+    const modal = document.getElementById('chatgpt-auth-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const keyInput = document.getElementById('chatgpt-api-key-input');
+    const modelSelect = document.getElementById('chatgpt-model-select');
+    const statusDot = document.getElementById('chatgpt-pulse-dot');
+    const statusText = document.getElementById('chatgpt-modal-status-text');
+    const disconnectBtn = document.getElementById('btn-disconnect-chatgpt');
+    const feedback = document.getElementById('chatgpt-auth-feedback');
+
+    if (keyInput) keyInput.value = state.chatgptApiKey || '';
+    if (modelSelect) modelSelect.value = state.chatgptModel || 'gpt-4o';
+    if (feedback) feedback.textContent = '';
+
+    if (state.chatgptConnected && state.chatgptApiKey) {
+        if (statusDot) statusDot.classList.add('active');
+        if (statusText) statusText.textContent = `Status: Connected (${state.chatgptModel || 'gpt-4o'})`;
+        if (disconnectBtn) disconnectBtn.classList.remove('hidden');
+    } else {
+        if (statusDot) statusDot.classList.remove('active');
+        if (statusText) statusText.textContent = 'Status: Not Connected';
+        if (disconnectBtn) disconnectBtn.classList.add('hidden');
+    }
+}
+window.openChatGPTAuthModal = openChatGPTAuthModal;
+
+function closeChatGPTAuthModal() {
+    const modal = document.getElementById('chatgpt-auth-modal');
+    if (modal) modal.classList.add('hidden');
+}
+window.closeChatGPTAuthModal = closeChatGPTAuthModal;
+
+function toggleApiKeyVisibility() {
+    const input = document.getElementById('chatgpt-api-key-input');
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+window.toggleApiKeyVisibility = toggleApiKeyVisibility;
+
+async function testChatGPTConnection() {
+    const keyInput = document.getElementById('chatgpt-api-key-input');
+    const modelSelect = document.getElementById('chatgpt-model-select');
+    const feedback = document.getElementById('chatgpt-auth-feedback');
+    const statusDot = document.getElementById('chatgpt-pulse-dot');
+    const statusText = document.getElementById('chatgpt-modal-status-text');
+
+    const key = keyInput ? keyInput.value.trim() : '';
+    const model = modelSelect ? modelSelect.value : 'gpt-4o';
+
+    if (!key) {
+        if (feedback) {
+            feedback.className = 'auth-feedback-message error';
+            feedback.textContent = 'Please enter an OpenAI API Key to test.';
+        }
+        return;
+    }
+
+    if (feedback) {
+        feedback.className = 'auth-feedback-message';
+        feedback.textContent = '⏳ Validating connection with OpenAI...';
+    }
+
+    try {
+        const res = await fetch(`${state.apiUrl}/api/v1/auth/chatgpt-verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: key, model: model })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            if (feedback) {
+                feedback.className = 'auth-feedback-message success';
+                feedback.textContent = `✅ Successfully connected to OpenAI (${data.model || model})!`;
+            }
+            if (statusDot) statusDot.classList.add('active');
+            if (statusText) statusText.textContent = `Status: Verified (${model})`;
+        } else {
+            throw new Error(data.detail || data.error || 'Authentication failed');
+        }
+    } catch (err) {
+        if (feedback) {
+            feedback.className = 'auth-feedback-message error';
+            feedback.textContent = `❌ Connection Error: ${err.message}`;
+        }
+        if (statusDot) statusDot.classList.remove('active');
+        if (statusText) statusText.textContent = 'Status: Verification Failed';
+    }
+}
+window.testChatGPTConnection = testChatGPTConnection;
+
+function saveChatGPTAuth() {
+    const keyInput = document.getElementById('chatgpt-api-key-input');
+    const modelSelect = document.getElementById('chatgpt-model-select');
+    const feedback = document.getElementById('chatgpt-auth-feedback');
+
+    const key = keyInput ? keyInput.value.trim() : '';
+    const model = modelSelect ? modelSelect.value : 'gpt-4o';
+
+    if (!key) {
+        if (feedback) {
+            feedback.className = 'auth-feedback-message error';
+            feedback.textContent = 'Please enter an API Key before saving.';
+        }
+        return;
+    }
+
+    state.chatgptApiKey = key;
+    state.chatgptModel = model;
+    state.chatgptConnected = true;
+
+    localStorage.setItem('insightos_chatgpt_key', key);
+    localStorage.setItem('insightos_chatgpt_model', model);
+
+    // Automatically switch to chatgpt model
+    state.selectedModelProvider = 'chatgpt';
+    localStorage.setItem('insightos_chat_model', 'chatgpt');
+    const modelDropdown = document.getElementById('chat-model-select');
+    if (modelDropdown) {
+        modelDropdown.value = 'chatgpt';
+    }
+
+    updateChatGPTAuthButton();
+
+    if (feedback) {
+        feedback.className = 'auth-feedback-message success';
+        feedback.textContent = '✅ Saved! Switched query model to ChatGPT.';
+    }
+
+    setTimeout(() => {
+        closeChatGPTAuthModal();
+    }, 700);
+}
+window.saveChatGPTAuth = saveChatGPTAuth;
+
+function disconnectChatGPT() {
+    state.chatgptApiKey = '';
+    state.chatgptConnected = false;
+    localStorage.removeItem('insightos_chatgpt_key');
+
+    if (state.selectedModelProvider === 'chatgpt') {
+        state.selectedModelProvider = 'local';
+        localStorage.setItem('insightos_chat_model', 'local');
+        const modelDropdown = document.getElementById('chat-model-select');
+        if (modelDropdown) {
+            modelDropdown.value = 'local';
+        }
+    }
+
+    updateChatGPTAuthButton();
+
+    const keyInput = document.getElementById('chatgpt-api-key-input');
+    if (keyInput) keyInput.value = '';
+    const statusDot = document.getElementById('chatgpt-pulse-dot');
+    const statusText = document.getElementById('chatgpt-modal-status-text');
+    const disconnectBtn = document.getElementById('btn-disconnect-chatgpt');
+    const feedback = document.getElementById('chatgpt-auth-feedback');
+
+    if (statusDot) statusDot.classList.remove('active');
+    if (statusText) statusText.textContent = 'Status: Disconnected';
+    if (disconnectBtn) disconnectBtn.classList.add('hidden');
+    if (feedback) {
+        feedback.className = 'auth-feedback-message';
+        feedback.textContent = 'Disconnected OpenAI credentials. Reverted to Local Model.';
+    }
+}
+window.disconnectChatGPT = disconnectChatGPT;
 
 
 

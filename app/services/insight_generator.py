@@ -70,131 +70,246 @@ class InsightGeneratorService:
         return "general_query"
 
     def _stockout_insight(self, results: List[dict], count: int) -> Dict[str, str]:
-        """Generate stockout / sales-velocity specific insights."""
+        """Generate crystal-clear, plain-English stockout insights for retail operators."""
+        # 1. Check if results contain real inventory fields
+        is_inventory_data = any("current_stock" in r or "stock_count" in r for r in results)
+
+        if is_inventory_data:
+            at_risk = []
+            safe = []
+            total_deficit = 0
+
+            for r in results:
+                name = r.get("product") or r.get("style_name") or r.get("sku") or "Product"
+                stock = int(r.get("current_stock") if "current_stock" in r else r.get("stock_count", 0))
+                reorder = int(r.get("reorder_point", 0))
+                deficit = int(r.get("units_deficit") if "units_deficit" in r else max(0, reorder - stock))
+                risk = str(r.get("risk_level", "")).upper()
+
+                if stock <= reorder or deficit > 0 or "RISK" in risk or "STOCK" in risk:
+                    at_risk.append({
+                        "name": name,
+                        "sku": r.get("sku", ""),
+                        "stock": stock,
+                        "reorder": reorder,
+                        "deficit": max(deficit, 0),
+                        "risk": risk or "HIGH RISK"
+                    })
+                    total_deficit += max(deficit, 0)
+                else:
+                    safe.append(name)
+
+            if not at_risk:
+                return {
+                    "insight": (
+                        "✅ All monitored products have healthy inventory levels! "
+                        f"None of the {count} products in the catalog are currently below their safety threshold."
+                    ),
+                    "recommendation": (
+                        "1. Continue regular daily sales monitoring.\n"
+                        "2. Standard replenishment schedules are operating normally."
+                    ),
+                }
+
+            # Build simple plain-English bullet list
+            bullets = []
+            for item in at_risk[:5]:
+                sku_str = f" ({item['sku']})" if item['sku'] else ""
+                urgency = "🔴 Urgent" if item['stock'] <= 5 else "⚠️ Low Stock"
+                bullets.append(
+                    f"{urgency}: {item['name']}{sku_str} — Only {item['stock']} units left in stock "
+                    f"(Safety target: {item['reorder']}, Shortage: {item['deficit']} units)"
+                )
+            bullets_text = "\n".join(bullets)
+
+            most_critical = min(at_risk, key=lambda x: x["stock"])
+
+            return {
+                "insight": (
+                    f"⚠️ Found {len(at_risk)} product(s) at immediate risk of running out of stock this week:\n\n"
+                    f"{bullets_text}\n\n"
+                    f"📦 Total replenishment needed: {total_deficit} units across all low-stock items to reach safe inventory levels."
+                ),
+                "recommendation": (
+                    f"1. Place urgent restock orders for {len(at_risk)} items ({total_deficit} units total) immediately.\n"
+                    f"2. Prioritize '{most_critical['name']}' as it has the lowest inventory ({most_critical['stock']} units remaining).\n"
+                    f"3. Expedite delivery with your suppliers to avoid out-of-stock lost sales."
+                ),
+            }
+
+        # 2. Fallback to sales-velocity data (shop_sales)
         critical_items = []
         for r in results[:5]:
-            name = r.get("product", r.get("style_name", r.get("sku", "Unknown")))
-            units = r.get("total_units_sold", r.get("quantity", r.get("stock_count", "N/A")))
-            rev = r.get("total_sales", r.get("sales", None))
-            if rev is not None:
-                critical_items.append(f"{name} ({units} units sold, ₹{rev:,.2f} sales)")
-            else:
-                critical_items.append(f"{name} ({units} units)")
+            name = r.get("product") or r.get("style_name") or r.get("sku") or "Product"
+            units = r.get("total_units_sold") or r.get("quantity") or 0
+            rev = r.get("total_sales") or r.get("sales") or 0
+            critical_items.append(f"• {name}: {units} units sold (₹{rev:,.2f} revenue)")
 
-        items_str = "; ".join(critical_items[:3])
-        worst = results[0] if results else {}
-        worst_name = worst.get("product", worst.get("style_name", worst.get("sku", "Top item")))
-        worst_units = worst.get("total_units_sold", worst.get("quantity", "high volume"))
+        top_item = results[0].get("product", "Top product")
+        items_str = "\n".join(critical_items[:4])
 
         return {
             "insight": (
-                f"Identified {count} high-velocity products in the live dataset. "
-                f"Top in demand: {items_str}. "
-                f"'{worst_name}' leads demand with {worst_units} units sold and requires proactive inventory monitoring."
+                f"⚡ Demand Velocity Analysis (Top {min(count, 4)} Fast-Selling Products):\n\n"
+                f"{items_str}\n\n"
+                f"'{top_item}' has the highest sales demand right now. Because these products sell the fastest, they carry the highest risk of stocking out if not replenished frequently."
             ),
             "recommendation": (
-                f"1. Ensure adequate inventory buffer for top high-velocity products ({worst_name}).\n"
-                f"2. Monitor real-time sales rates across top selling categories.\n"
-                f"3. Maintain supplier reorder cadences to prevent out-of-stock events."
+                f"1. Check warehouse inventory levels immediately for '{top_item}'.\n"
+                f"2. Keep a 2-week extra safety buffer for these fast-selling items.\n"
+                f"3. Schedule frequent reorder cycles with suppliers for top-selling categories."
             ),
         }
 
     def _reorder_insight(self, results: List[dict], count: int) -> Dict[str, str]:
-        """Generate reorder-specific insights."""
-        total_qty = sum(r.get("suggested_reorder_qty", r.get("reorder_qty", 0)) for r in results)
-        total_cost = sum(
-            r.get("suggested_reorder_qty", r.get("reorder_qty", 0)) * r.get("unit_cost", 40)
-            for r in results
-        )
+        """Generate clear reorder recommendations with concrete units and cost."""
+        total_qty = 0
+        total_cost = 0.0
+        reorder_list = []
+
+        for r in results:
+            name = r.get("product") or r.get("style_name") or r.get("sku") or "Product"
+            qty = r.get("recommended_reorder_qty") or r.get("suggested_reorder_qty") or r.get("recommended_restock_units") or r.get("reorder_qty", 0)
+            cost = r.get("estimated_unit_cost") or r.get("unit_cost", 25.0)
+            cur = r.get("current_stock")
+            total_qty += int(qty)
+            total_cost += float(qty) * float(cost)
+            stock_info = f" (Current Stock: {cur})" if cur is not None else ""
+            reorder_list.append(f"• {name}{stock_info}: Order {int(qty)} units (~₹{float(qty)*float(cost):,.2f})")
+
+        items_str = "\n".join(reorder_list[:4])
+        top_item = results[0].get("product", "Top item")
 
         return {
             "insight": (
-                f"{count} products require immediate replenishment. "
-                f"Total recommended reorder volume: {total_qty} units. "
-                + (f"Estimated procurement value: ₹{total_cost:,.2f}. " if total_cost > 0 else "")
-                + "Timely reordering prevents lost sales."
+                f"📋 Replenishment Summary: {count} product(s) recommended for reordering.\n\n"
+                f"{items_str}\n\n"
+                f"📦 Total Recommended Order: {total_qty} units.\n"
+                f"💰 Total Estimated Procurement Cost: ₹{total_cost:,.2f}."
             ),
             "recommendation": (
-                f"1. Approve purchase orders for all {count} items requiring replenishment.\n"
-                f"2. Prioritize items with the highest demand velocity.\n"
-                f"3. Consolidate supplier orders to optimize bulk freight costs."
+                f"1. Submit purchase orders for {total_qty} units across {count} items.\n"
+                f"2. Prioritize '{top_item}' to maintain uninterrupted customer fulfillment.\n"
+                f"3. Consolidate orders to reduce freight and shipping costs."
             ),
         }
 
-    def _profit_insight(self, results: List[dict], count: int) -> Dict[str, str]:
-        """Generate profit & margin specific insights."""
-        top = results[0] if results else {}
-        top_name = top.get("product", top.get("category", top.get("shop_name", "Top Item")))
-        top_profit = top.get("total_profit", top.get("profit", 0.0))
-        top_margin = top.get("profit_margin_pct", 0.0)
+    @staticmethod
+    def _extract_num(row: dict, keywords: list, default: float = 0.0) -> float:
+        if not isinstance(row, dict):
+            return default
+        for k in keywords:
+            if k in row and row[k] is not None:
+                try: return float(row[k])
+                except (ValueError, TypeError): pass
+        for k, v in row.items():
+            if v is not None and any(kw in str(k).lower() for kw in keywords):
+                try: return float(v)
+                except (ValueError, TypeError): pass
+        return default
 
-        total_profit = sum(r.get("total_profit", r.get("profit", 0.0)) for r in results)
-        total_sales = sum(r.get("total_sales", r.get("sales", 0.0)) for r in results)
+    @staticmethod
+    def _extract_name(row: dict, default: str = "Item") -> str:
+        if not isinstance(row, dict):
+            return default
+        for k in ["product", "style_name", "shop_name", "city", "category", "sku", "name", "channel"]:
+            if k in row and row[k]:
+                return str(row[k])
+        for k, v in row.items():
+            if isinstance(v, str) and not any(kw in k.lower() for kw in ["id", "date", "status"]):
+                return str(v)
+        return default
+
+    def _profit_insight(self, results: List[dict], count: int) -> Dict[str, str]:
+        """Generate profit & margin specific insights in plain language."""
+        top = results[0] if results else {}
+        top_name = self._extract_name(top, "Top Item")
+        top_profit = self._extract_num(top, ["profit", "net_profit", "margin"])
+        
+        total_profit = sum(self._extract_num(r, ["profit", "net_profit", "margin"]) for r in results)
+        total_sales = sum(self._extract_num(r, ["sales", "revenue", "retail_price"]) for r in results)
+        overall_margin = (total_profit / max(total_sales, 1.0)) * 100 if total_sales > 0 else 0.0
+
+        top_items = []
+        for r in results[:4]:
+            name = self._extract_name(r, "Item")
+            p = self._extract_num(r, ["profit", "net_profit", "margin"])
+            top_items.append(f"• {name}: ₹{p:,.2f} net profit")
+        items_str = "\n".join(top_items)
 
         return {
             "insight": (
-                f"Profit analysis across {count} items. Top contributor: '{top_name}' "
-                f"generating ₹{top_profit:,.2f} in net profit"
-                + (f" ({top_margin}% margin)" if top_margin else "")
-                + f". Total profit: ₹{total_profit:,.2f} on total sales of ₹{total_sales:,.2f}."
+                f"💰 Profitability Overview across {count} record(s):\n\n"
+                f"{items_str}\n\n"
+                f"🏆 Top Profit Generator: '{top_name}' with ₹{top_profit:,.2f} in profit.\n"
+                f"📊 Total Revenue: ₹{total_sales:,.2f} | Total Net Profit: ₹{total_profit:,.2f} (Average Margin: {overall_margin:.1f}%)."
             ),
             "recommendation": (
-                f"1. Promote high-margin items like '{top_name}' to maximize total gross margin.\n"
-                f"2. Review cost structures for low-margin products.\n"
-                f"3. Optimize procurement pricing with suppliers for top profit generators."
+                f"1. Feature '{top_name}' prominently on storefront and campaigns to drive higher profits.\n"
+                f"2. Maintain healthy profit margins above 25% by negotiating supplier volume discounts.\n"
+                f"3. Review low-margin products for potential pricing or cost optimization."
             ),
         }
 
     def _sales_insight(self, results: List[dict], count: int, query: str) -> Dict[str, str]:
-        """Generate sales-specific insights."""
+        """Generate sales and revenue insights in plain, intuitive language."""
         top = results[0] if results else {}
-        top_name = top.get("product", top.get("shop_name", top.get("city", top.get("category", top.get("payment_method", top.get("customer_type", top.get("style_name", top.get("sku", "Top Entity"))))))))
-        top_units = top.get("total_units_sold", top.get("total_units", top.get("units_sold", top.get("quantity", top.get("transaction_count", top.get("num_transactions", "N/A"))))))
-        top_revenue = top.get("total_sales", top.get("total_revenue", top.get("sales", top.get("estimated_revenue", "N/A"))))
+        top_name = self._extract_name(top, "Top Performer")
+        top_units = int(self._extract_num(top, ["units_sold", "quantity", "units", "count"]))
+        top_rev = self._extract_num(top, ["sales", "revenue", "amount", "retail_price"])
 
-        total_units = sum(
-            r.get("total_units_sold", r.get("total_units", r.get("units_sold", r.get("quantity", 0))))
-            for r in results
-        )
-        total_rev = sum(
-            r.get("total_sales", r.get("total_revenue", r.get("sales", 0.0)))
-            for r in results
-        )
+        total_units = sum(int(self._extract_num(r, ["units_sold", "quantity", "units", "count"])) for r in results)
+        total_rev = sum(self._extract_num(r, ["sales", "revenue", "amount", "retail_price"]) for r in results)
+
+        leaders = []
+        for r in results[:4]:
+            name = self._extract_name(r, "Item")
+            units = int(self._extract_num(r, ["units_sold", "quantity", "units", "count"]))
+            rev = self._extract_num(r, ["sales", "revenue", "amount", "retail_price"])
+            if units > 0:
+                leaders.append(f"• {name}: {units} units sold (₹{rev:,.2f})")
+            else:
+                leaders.append(f"• {name}: ₹{rev:,.2f} total revenue")
+        leaders_str = "\n".join(leaders)
+
+        unit_str = f" with {top_units} units sold" if top_units > 0 else ""
+        vol_str = f"💵 Total Volume: {total_units} units | " if total_units > 0 else ""
 
         return {
             "insight": (
-                f"Sales analysis reveals {count} records in the dataset. "
-                f"Leading entity: '{top_name}' with {top_units} units/transactions"
-                + (f" generating ₹{top_revenue:,.2f} in revenue" if isinstance(top_revenue, (int, float)) else "")
-                + (f". Total cumulative sales: ₹{total_rev:,.2f} ({total_units} total units)." if total_rev > 0 else "")
+                f"📈 Sales Performance Summary ({count} entries found):\n\n"
+                f"{leaders_str}\n\n"
+                f"🌟 Top Performer: '{top_name}'{unit_str} (₹{top_rev:,.2f}).\n"
+                f"{vol_str}Total Revenue: ₹{total_rev:,.2f}."
             ),
             "recommendation": (
-                f"1. Ensure adequate inventory for '{top_name}' to maintain sales velocity.\n"
-                f"2. Replicate successful merchandising and channel strategies across other segments.\n"
-                f"3. Monitor conversion and velocity trends across all retail outlets."
+                f"1. Keep stock ready for '{top_name}' to meet strong ongoing customer demand.\n"
+                f"2. Apply successful promotional strategies from top products across other catalog items.\n"
+                f"3. Monitor weekly sales velocity to catch new consumer trends early."
             ),
         }
 
     def _inventory_insight(self, results: List[dict], count: int) -> Dict[str, str]:
-        """Generate inventory-specific insights."""
-        total_stock = sum(r.get("stock_count", r.get("total_stock", r.get("stock", 0))) for r in results)
-        low_stock = sum(
+        """Generate clear inventory status summary."""
+        total_stock = sum(int(r.get("current_stock") or r.get("stock_count") or 0) for r in results)
+        low_count = sum(
             1 for r in results
-            if r.get("stock_count", 0) <= r.get("reorder_point", 0) or r.get("low_stock_count", 0) > 0
+            if int(r.get("current_stock") or r.get("stock_count") or 0) <= int(r.get("reorder_point") or 0)
         )
+        healthy_count = len(results) - low_count
 
         return {
             "insight": (
-                f"Inventory snapshot: {count} product categories/items with a total of {total_stock} units in stock. "
-                + (f"{low_stock} items/categories are at or below reorder threshold. " if low_stock > 0 else "")
-                + f"Overall inventory posture is "
-                + ("concerning" if low_stock > count * 0.3 else "moderate" if low_stock > 0 else "healthy")
-                + "."
+                f"📦 Warehouse Inventory Snapshot ({count} items tracked):\n\n"
+                f"• Total Units in Stock: {total_stock} units\n"
+                f"• Healthy Stock: {healthy_count} product(s) ✅\n"
+                f"• Low / Reorder Needed: {low_count} product(s) ⚠️\n\n"
+                + (f"Overall inventory status is good, but {low_count} items need replenishment." if low_count > 0 else "Overall inventory status is healthy across all catalog items.")
             ),
             "recommendation": (
-                "1. Reorder products reaching safety thresholds.\n"
-                "2. Monitor warehouse stock velocity to prevent stockouts.\n"
-                "3. Align purchase orders with predicted 30-day demand."
+                "1. Check the low-stock items and generate purchase orders before they run out.\n"
+                "2. Conduct periodic warehouse cycle counts to verify physical stock matches system numbers.\n"
+                "3. Set automated reorder alerts for high-turnover products."
             ),
         }
 
